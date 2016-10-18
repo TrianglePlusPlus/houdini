@@ -1,0 +1,8 @@
+---
+config:
+  vagrant:
+    ip: 192.168.33.2
+    repo_name: houdini
+    db_name: houdini
+    db_user: houdini
+    db_pass: houdini

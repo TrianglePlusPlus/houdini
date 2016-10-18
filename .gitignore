@@ -1,0 +1,4 @@
+.vagrant/
+virt_env/
+*.pyc
+.DS_Store
