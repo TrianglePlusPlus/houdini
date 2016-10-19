@@ -11,18 +11,25 @@
 	</head>
 	<body>
 		<div class="sidebar">
+			<div class="logo-container">
+			</div>
 			<ul class="sidebar-nav">
-				<li><a href=""><span class="fa fa-user fa-fw"></span>Users</a></li>
-				<li><a href=""><span class="fa fa-users fa-fw"></span>Roles</a></li>
-				<li><a href=""><span class="fa fa-list fa-fw"></span>Permissions</a></li>
+				<li><a href="/applications"><span class="fa fa-server fa-fw"></span>Applications</a></li>
+				<li><a href="/directories"><span class="fa fa-database fa-fw"></span>Directories</a></li>
+				<li><a href="/users"><span class="fa fa-user fa-fw"></span>Users</a></li>
+				<li><a href="/roles"><span class="fa fa-users fa-fw"></span>Roles</a></li>
+				<li><a href="/permissions"><span class="fa fa-list fa-fw"></span>Permissions</a></li>
 			</ul>
 		</div>
 		<div class="page">
 			<nav class="navbar navbar-default navbar-static-top">
-				
 			</nav>
+			<div class="content container-fluid">
+				<div class="row">
+					{% block content %}
+					{% endblock %}
+				</div>
+			</div>
 		</div>
-		{% block content %}
-		{% endblock %}
 	</body>
 </html>

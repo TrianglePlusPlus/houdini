@@ -11,7 +11,7 @@ body
 {
 	position: absolute;
 	background: #083479;
-	width: 200px;
+	width: 225px;
 	top: 0;
 	left: 0;
 	bottom: 0;
@@ -19,7 +19,7 @@ body
 
 .sidebar-nav
 {
-	width: 200px;
+	width: 100%;
 	padding: 0 20px;
 	list-style-type: none;
 }
@@ -51,11 +51,32 @@ body
 	vertical-align: middle;
 }
 
+.logo-container
+{
+	height: 80px;
+}
+
 .page
 {
 	position: absolute;
-	width: calc(100% - 200px);
+	width: calc(100% - 225px);
 	top: 0;
-	left: 200px;
+	left: 225px;
 	bottom: 0;
+}
+
+.navbar
+{
+	margin: 0;
+	padding: 0;
+}
+
+.content
+{
+	margin: 25px;
+}
+
+.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited 
+{
+    background-color: #08794d !important;
 }
