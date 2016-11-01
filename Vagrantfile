@@ -8,7 +8,7 @@ config = YAML.load_file("#{dir}/config.yml")
 yaml = config["config"]["vagrant"]
 
 Vagrant.configure(2) do |config|
-	config.vm.box = "corpit/django"
+	config.vm.box = "corpit/postgres"
 	
 	# comment out this line if you are using windows
 	config.vm.network "private_network", ip: yaml["ip"]
