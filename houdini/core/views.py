@@ -1,9 +1,26 @@
+import json
+
 from django.http import HttpResponse
 from django.shortcuts import render
 
+from .models import Role
+
 
 def index(request):
-    return render(request, 'core/index.html')
+    # dir_it = Role.create('Director of IT')
+    # dir_it.add_permission('timelord')
+    # dir_it.add_permission('backdoor')
+    # dir_it.add_permission('over9000')
+    # dir_it.add_parent('it')
+    # dir_it.add_parent('director')
+    # dir_it.save()
+    # ceo = Role.create('CEO')
+    # ceo.add_permission('meep')
+    # ceo.add_parent('director')
+    # ceo.add_parent('officer')
+    # ceo.save()
+    return HttpResponse(Role.get_json(), content_type='application/json')
+    # return render(request, 'core/index.html')
 
 
 def applications(request):
