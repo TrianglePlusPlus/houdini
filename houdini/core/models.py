@@ -1,5 +1,3 @@
-import json
-
 from django.contrib.auth import hashers
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -35,7 +33,7 @@ class Role(models.Model):
                 "permissions": role.permissions,
                 "parents": role.parents
             }
-        return json.dumps(data, indent=4, separators=(',', ': '))
+        return data
 
     def add_permission(self, slug):
         if slug not in self.permissions:

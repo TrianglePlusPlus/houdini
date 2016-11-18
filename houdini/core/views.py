@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 
 from .models import Role
+from .utils import JsonResponse
 
 
 def index(request):
@@ -19,7 +20,7 @@ def index(request):
     # ceo.add_parent('director')
     # ceo.add_parent('officer')
     # ceo.save()
-    return HttpResponse(Role.get_json(), content_type='application/json')
+    return JsonResponse(Role.get_json())
     # return render(request, 'core/index.html')
 
 
