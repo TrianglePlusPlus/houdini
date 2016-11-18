@@ -1,46 +1,45 @@
 from django.contrib.auth import hashers
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.template.defaultfilters import slugify
 
 
-class Permission(models.Model):
-    name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField()
-
-    @classmethod
-    def create(cls, name):
-        permission = cls(name=name)
-        return permission
-
-        def save(self, *args, **kwargs):
-                self.slug = slugify(self.name)
-                super(Permission, self).save(*args, **kwargs)
-
-
 class Role(models.Model):
-    name = models.CharField(max_length=128, unique=True)
+    name = models.CharField(max_length=64, unique=True)
     slug = models.SlugField()
-    parents = models.ManyToManyField('self')
+    permissions = JSONField()
+    parents = JSONField()
 
     @classmethod
     def create(cls, name):
-        role = cls(name=name)
-        return role
+        role = cls(name=name, permissions=[], parents=[])
+        return role   
+
+    @classmethod
+    def get_json(cls):
+        pass
+
+    def add_permission(self, slug):
+        pass
+
+    def remove_permission(self, slug):
+        pass
+
+    def add_parent(self, slug):
+        pass
+
+    def remove_parent(self, slug):
+        pass
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super(Role, self).save(*args, **kwargs)
 
 
-class BaseUser(models.Model):
-    first_name = models.CharField(max_length=128)
-    last_name = models.CharField(max_length=128)
-    email = models.CharField(max_length=128)
-    password = models.CharField(max_length=128)
+class Permission(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField()
 
-    def set_password(self, password):
-        self.password = hashers.make_password(password)
-
-
-class Employee(BaseUser):
-    pass
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super(Permission, self).save(*args, **kwargs)
