@@ -12,9 +12,9 @@ class Permission(models.Model):
         permission = cls(name=name)
         return permission
 
-        def save(self, *args, **kwargs):
-                self.slug = slugify(self.name)
-                super(Permission, self).save(*args, **kwargs)
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        self.super(Permission, self).save(*args, **kwargs)
 
 
 class Role(models.Model):
@@ -29,7 +29,7 @@ class Role(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        super(Role, self).save(*args, **kwargs)
+        self.super(Role, self).save(*args, **kwargs)
 
 
 class BaseUser(models.Model):
