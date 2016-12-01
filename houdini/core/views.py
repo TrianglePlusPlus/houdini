@@ -20,8 +20,8 @@ def index(request):
     # ceo.add_parent('director')
     # ceo.add_parent('officer')
     # ceo.save()
-    return JsonResponse(Role.get_json())
-    # return render(request, 'core/index.html')
+    # return JsonResponse(Role.get_json())
+    return render(request, 'core/index.html')
 
 
 def applications(request):

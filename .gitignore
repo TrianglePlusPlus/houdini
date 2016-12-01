@@ -1,3 +1,4 @@
+.idea/
 .vagrant/
 virt_env/
 *.pyc
