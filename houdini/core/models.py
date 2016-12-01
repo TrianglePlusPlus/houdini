@@ -1,9 +1,13 @@
+from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
 from django.template.defaultfilters import slugify
 
 
-class User(models.Model):
-    pass
+class User(AbstractBaseUser):
+    class Meta:
+        abstract = True
+
+    
 
 
 class Employee(models.Model):
