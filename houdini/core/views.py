@@ -28,12 +28,16 @@ def applications(request):
     return render(request, 'core/base.html')
 
 
-def directories(request):
-    return render(request, 'core/directories.html')
+def hierarchy(request):
+    return render(request, 'core/hierarchy.html')
 
 
 def users(request):
     return render(request, 'core/users.html')
+
+
+def profiles(request):
+    return render(request, 'core/profiles.html')
 
 
 def roles(request):
