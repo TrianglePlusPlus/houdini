@@ -1,9 +1,10 @@
 import json
 
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 
-from .models import Role
+from .forms import PermissionForm
+from .models import Permission, Role
 from .utils import JsonResponse
 
 
@@ -25,7 +26,7 @@ def index(request):
 
 
 def applications(request):
-    return render(request, 'core/base.html')
+    return render(request, 'core/applications.html')
 
 
 def hierarchy(request):
@@ -41,8 +42,23 @@ def profiles(request):
 
 
 def roles(request):
-    return render(request, 'core/base.html')
+    return render(request, 'core/roles.html')
 
 
 def permissions(request):
-    return render(request, 'core/base.html')
+    permissions = Permission.objects.all()
+    return render(request, 'core/permissions.html', {
+        'permissions': permissions
+    })
+
+def create_permission(request):
+    if request.method == 'POST':
+        form = PermissionForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/permissions')
+    else:
+        form = PermissionForm()
+    return render(request, 'core/create.html', {
+        'form': form
+        })

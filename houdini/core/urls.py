@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^profiles$', views.profiles, name='profiles'),
     url(r'^roles$', views.roles, name='roles'),
     url(r'^permissions$', views.permissions, name='permissions'),
+    url(r'^permissions/create$', views.create_permission, name='create_permission')
 ]

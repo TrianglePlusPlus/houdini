@@ -76,7 +76,12 @@ body
 	margin: 25px;
 }
 
-.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited 
+/*.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited 
 {
     background-color: #08794d !important;
 }
+
+.btn-danger, .btn-danger:hover, .btn-danger:active, .btn-danger:visited
+{
+	background-color: #790834 !important;
+}*/

@@ -1,0 +1,21 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<a class="btn btn-success" href="/permissions/create">Create Permission</a>
+<table class="table table-striped">
+	<thead>
+		<tr>
+			<th>Name</th>
+			<th>Slug</th>
+			<th>Actions</th>
+		</tr>
+	</thead>
+	<tbody>
+		{% for permission in permissions %}
+		<tr>
+			<td>{{ permission.name }}</td>
+			<td>{{ permission.slug }}</td>
+		</tr>
+		{% endfor %}
+	</tbody>
+</table>
+{% endblock %}
