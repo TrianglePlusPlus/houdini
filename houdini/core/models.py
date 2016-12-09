@@ -110,6 +110,20 @@ class AlumnusProfile(Profile):
     sex = models.CharField(max_length=32)
 
 
+class Permission(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField()
+
+    @classmethod
+    def create(cls, name):
+        permission = cls(name=name)
+        return permission
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        self.super(Permission, self).save(*args, **kwargs)
+
+
 # TODO: figure out how to sync updates between
 # role and permission tables and graph database
 class Role(models.Model):
@@ -165,17 +179,3 @@ class Role(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         self.super(Role, self).save(*args, **kwargs)
-
-
-class Permission(models.Model):
-    name = models.CharField(max_length=64, unique=True)
-    slug = models.SlugField()
-
-    @classmethod
-    def create(cls, name):
-        permission = cls(name=name)
-        return permission
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        self.super(Permission, self).save(*args, **kwargs)
