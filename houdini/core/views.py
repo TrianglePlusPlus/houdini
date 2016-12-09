@@ -5,6 +5,7 @@ from django.shortcuts import redirect, render
 
 from .forms import PermissionForm
 from .models import Permission, Role
+from .tables import PermissionTable
 from .utils import JsonResponse
 
 
@@ -46,9 +47,10 @@ def roles(request):
 
 
 def permissions(request):
-    permissions = Permission.objects.all()
-    return render(request, 'core/permissions.html', {
-        'permissions': permissions
+    table = PermissionTable(Permission.objects.all())
+    table.paginate(page=request.GET.get('page', 1), per_page=2)
+    return render(request, 'core/table.html', {
+        'table': table
     })
 
 def create_permission(request):
