@@ -6,13 +6,12 @@ from .models import Permission
 class PermissionForm(ModelForm):
     class Meta:
         model = Permission
-        fields = '__all__'
+        fields = ('name',)
 
     def __init__(self, *args, **kwargs):
         super(PermissionForm, self).__init__(*args, **kwargs)
 
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['slug'].widget.attrs.update({'class': 'form-control'})
 
     def clean(self):
         super(PermissionForm, self).clean()
