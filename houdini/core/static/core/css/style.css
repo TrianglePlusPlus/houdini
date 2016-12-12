@@ -76,12 +76,6 @@ body
 	margin: 25px;
 }
 
-/* CSS shenanigans for django_tables2 */
-li.cardinality
-{
-	display: none;
-}
-
 /*.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited 
 {
     background-color: #08794d !important;
