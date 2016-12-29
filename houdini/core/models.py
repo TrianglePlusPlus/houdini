@@ -70,9 +70,9 @@ class Role(models.Model):
         return role
 
     @classmethod
-    def get_json(cls):
+    def get_roles_json(cls):
         """
-        get json for all role objects in database
+        @:return The json for all role objects in database
         """
         roles = Role.objects.all()
         json = {}
@@ -82,7 +82,7 @@ class Role(models.Model):
 
     def get_json(self):
         """
-        get json representation of this object for graph
+        @:return The json representation of just the role instance
         """
         return {
             'parents': self.get_parents(),
@@ -102,26 +102,18 @@ class Role(models.Model):
             node = node.parent
         return parents
 
-    def get_permissions(self):
-        """
-        get a list of slugs of this roles permissions
-        """
-        return [permission.slug for permission in self.permissions]
-
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         self.super(Role, self).save(*args, **kwargs)
 
     def get_permission_slugs_for_role(self):
+        """
+        @:return A list of the slugs for all of this role's permissions
+        """
         return [permission.slug for permission in self.permission]
 
     def get_parent_slugs_for_role(self):
         return [parent.slug for parent in self.parents]
-
-
-class RoleGrant(models.Model):
-    user = models.ForeignKey(User)
-    role = models.ForeignKey(Role)
 
 
 class User(AbstractBaseUser):

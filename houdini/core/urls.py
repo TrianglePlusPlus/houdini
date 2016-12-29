@@ -12,6 +12,6 @@ urlpatterns = [
     url(r'^roles$', views.roles, name='roles'),
     url(r'^permissions$', views.permissions, name='permissions'),
     url(r'^permissions/create$', views.create_permission, name='create_permission'),
-    url(r'^permissions/edit/(\d+)$', views.edit_permission, name='edit_permission'),
+    url(r'^permissions/edit/(?P<pk>\d+)$', views.PermissionUpdate.as_view(), name='edit_permission'),
     url(r'^permissions/delete/(\d+)$', views.delete_permission, name='delete_permission'),
 ]

@@ -3,6 +3,8 @@ import json
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.views.generic.edit import UpdateView
+from django.contrib import messages
 
 from .forms import PermissionForm
 from .models import Permission, Role
@@ -69,6 +71,7 @@ def permissions(request):
     #     'permissions': permissions
     # })
 
+
 def create_permission(request):
     if request.method == 'POST':
         form = PermissionForm(request.POST)
@@ -79,13 +82,22 @@ def create_permission(request):
         form = PermissionForm()
     return render(request, 'core/create.html', {
         'form': form
-        })
+    })
 
-def edit_permission(request, permission_id):
-    permission = Permission.objects.get(pk=permission_id)
-    if permission:
-        pass
-    return redirect('/permissions')
+
+class PermissionUpdate(UpdateView):
+    """
+    Generates the edit form and autofills existing details.
+    """
+    model = Permission
+    form_class = PermissionForm
+    template_name = 'core/create.html'
+    success_url = '/permissions'
+
 
 def delete_permission(request, permission_id):
-    pass
+    permission_to_delete = Permission.objects.get(pk=permission_id)
+    message = 'Permission "' + permission_to_delete.name + '" successfully deleted.'
+    if permission_to_delete.delete():
+        messages.success(request, message)
+    return redirect('permissions')
