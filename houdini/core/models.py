@@ -20,7 +20,7 @@ class Permission(models.Model):
 class Role(models.Model):
     name = models.CharField(max_length=128, unique=True)
     slug = models.SlugField()
-    parents = models.ManyToManyField('self')
+    parents = models.ManyToManyField("self")
 
     @classmethod
     def create(cls, name):
@@ -30,6 +30,23 @@ class Role(models.Model):
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         self.super(Role, self).save(*args, **kwargs)
+
+    def get_permission_slugs_for_role(self):
+        permission_grants = PermissionGrant.objects.filter(role=self)
+        return [grant.permission.slug for grant in permission_grants]
+
+    def get_parent_slugs_for_role(self):
+        return [parent.slug for parent in self.parents]
+
+
+class PermissionGrant(models.Model):
+    role = models.ForeignKey(Role)
+    permission = models.ForeignKey(Permission)
+
+
+class RoleGrant(models.Model):
+    user = models.ForeignKey(BaseUser)
+    role = models.ForeignKey(Role)
 
 
 class BaseUser(models.Model):
