@@ -9,11 +9,23 @@ from django.utils import timezone
 
 class Application(models.Model):
     name = models.CharField(max_length=64, unique=True)
-    app_key = models.CharField(max_length=32)
-    app_secret = models.CharField(max_length=32)
+    app_key = models.CharField(max_length=32, blank=True)
+    app_secret = models.CharField(max_length=32, blank=True)
 
     # JSON serialized string of profile names
     profiles = models.TextField()
+
+    @classmethod
+    def create(cls, name):
+        application = cls(name=name)
+        return application
+
+    def save(self, *args, **kwargs):
+        if not self.app_key:
+            self.generate_app_key()
+        if not self.app_secret:
+            self.generate_app_secret()
+        super().save(args, kwargs)
 
     def generate_app_key(self):
         self.app_key = uuid.uuid4().hex

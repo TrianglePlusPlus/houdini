@@ -6,9 +6,9 @@ from django.shortcuts import redirect, render
 from django.views.generic.edit import UpdateView
 from django.contrib import messages
 
-from .forms import PermissionForm, RoleForm
-from .models import Permission, Role
-from .tables import PermissionTable, RoleTable
+from .forms import ApplicationForm, RoleForm, PermissionForm
+from .models import Application, Role, Permission
+from .tables import ApplicationTable, RoleTable, PermissionTable
 from .utils import JsonResponse
 
 
@@ -30,7 +30,34 @@ def index(request):
 
 
 def applications(request):
-    return render(request, 'core/applications.html')
+    table = ApplicationTable(Application.objects.order_by('name').all())
+    table.paginate(page=request.GET.get('page', 1), per_page=2)
+    return render(request, 'core/table.html', {
+        'name': 'application',
+        'table': table
+    })
+
+
+def create_application(request):
+    if request.method == 'POST':
+        form = ApplicationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/applications')
+    else:
+        form = ApplicationForm
+    return render(request, 'core/create.html', {
+        'name': 'application',
+        'form': form
+    })
+
+
+def delete_application(request, application_id):
+    application_to_delete = Application.objects.get(pk=application_id)
+    message = 'Application "' + application_to_delete.name + '" successfully deleted.'
+    if application_to_delete.delete():
+        messages.success(request, message)
+    return redirect('applications')
 
 
 def hierarchy(request):
@@ -66,6 +93,7 @@ def create_role(request):
         'name': 'role',
         'form': form
     })
+
 
 class RoleUpdate(UpdateView):
     """
