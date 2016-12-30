@@ -42,6 +42,86 @@ class Application(models.Model):
             self.profiles = json.dumps(profile_names)
 
 
+class Permission(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField(blank=True)
+
+    @classmethod
+    def create(cls, name):
+        permission = cls(name=name)
+        return permission
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
+
+
+# TODO: figure out how to sync updates between
+# role and permission tables and graph database
+class Role(models.Model):
+    name = models.CharField(max_length=64, unique=True)
+    slug = models.SlugField()
+    parents = models.ManyToManyField("self", blank=True, symmetrical=False)
+    permissions = models.ManyToManyField(Permission, blank=True, symmetrical=False)
+
+    @classmethod
+    def create(cls, name):
+        role = cls(name=name)
+        return role
+
+    @classmethod
+    def get_roles_json(cls):
+        """
+        @:return The json for all role objects in database
+        """
+        roles = Role.objects.all()
+        json = {}
+        for role in roles:
+            json[role.slug] = role.get_json()
+        return json
+
+    def get_json(self):
+        """
+        @:return The json representation of just the role instance
+        """
+        return {
+            'parents': self.get_parent_slugs_for_role(),
+            'permissions': self.get_permission_slugs_for_role()
+        }
+
+    # this method is super inefficient
+    def get_all_parents(self):
+        # TODO: Is this necessary?
+        pass
+
+    def save(self, *args, **kwargs):
+        self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    @property
+    def permissions_names(self):
+        return ', '.join((permission.name for permission in self.permissions.all()))
+
+    def get_permission_slugs_for_role(self):
+        """
+        @:return A list of the slugs for all of this role's permissions
+        """
+        return [permission.slug for permission in self.permission]
+
+    @property
+    def parents_names(self):
+        return ', '.join((parent.name for parent in self.parents.all()))
+
+    def get_parent_slugs_for_role(self):
+        return [parent.slug for parent in self.parents]
+
+    def __str__(self):
+        return self.name
+
+
 class User(AbstractBaseUser):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True)
@@ -57,6 +137,8 @@ class User(AbstractBaseUser):
     city = models.CharField(max_length=128, null=True)
     state = models.CharField(max_length=64, null=True)
     zip = models.CharField(max_length=11, null=True)
+
+    roles = models.ManyToManyField(Role)
 
 
 class Profile(models.Model):
@@ -92,7 +174,7 @@ class ApplicantProfile(Profile):
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
 
-    # add more applicant specific fields
+    # TODO: add more applicant specific fields
 
 
 class CustomerProfile(Profile):
@@ -108,74 +190,3 @@ class AlumnusProfile(Profile):
     major = models.CharField(max_length=128)
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
-
-
-class Permission(models.Model):
-    name = models.CharField(max_length=64, unique=True)
-    slug = models.SlugField()
-
-    @classmethod
-    def create(cls, name):
-        permission = cls(name=name)
-        return permission
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        self.super(Permission, self).save(*args, **kwargs)
-
-
-# TODO: figure out how to sync updates between
-# role and permission tables and graph database
-class Role(models.Model):
-    name = models.CharField(max_length=64, unique=True)
-    slug = models.SlugField()
-    parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True)
-    permissions = models.ManyToManyField(Permission)
-
-    @classmethod
-    def create(cls, name):
-        role = cls(name=name)
-        return role
-
-    @classmethod
-    def get_json(cls):
-        """
-        get json for all role objects in database
-        """
-        roles = Role.objects.all()
-        json = {}
-        for role in roles:
-            json[role.slug] = role.get_json()
-        return json
-
-    def get_json(self):
-        """
-        get json representation of this object for graph
-        """
-        return {
-            'parents': self.get_parents(),
-            'permissions': self.get_permissions()
-        }
-
-    # this method is super inefficient
-    def get_parents(self):
-        """
-        get a list of slugs of this roles parents
-        (traverse up the graph)
-        """
-        parents = []
-        node = self.parent
-        while node:
-            parents.append(node.slug)
-            node = node.parent
-        return parents
-
-    def get_permissions(self):
-        """
-        get a list of slugs of this roles permissions
-        """
-        return [permission.slug for permission in permissions]
-
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        self.super(Role, self).save(*args, **kwargs)
