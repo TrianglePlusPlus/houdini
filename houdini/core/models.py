@@ -53,7 +53,10 @@ class Permission(models.Model):
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        super(Permission, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 
 # TODO: figure out how to sync updates between
@@ -61,8 +64,8 @@ class Permission(models.Model):
 class Role(models.Model):
     name = models.CharField(max_length=64, unique=True)
     slug = models.SlugField()
-    parent = models.ForeignKey("self", on_delete=models.SET_NULL, null=True)
-    permissions = models.ManyToManyField(Permission)
+    parents = models.ManyToManyField("self", blank=True, symmetrical=False)
+    permissions = models.ManyToManyField(Permission, blank=True, symmetrical=False)
 
     @classmethod
     def create(cls, name):
@@ -85,26 +88,22 @@ class Role(models.Model):
         @:return The json representation of just the role instance
         """
         return {
-            'parents': self.get_parents(),
-            'permissions': self.get_permissions()
+            'parents': self.get_parent_slugs_for_role(),
+            'permissions': self.get_permission_slugs_for_role()
         }
 
     # this method is super inefficient
-    def get_parents(self):
-        """
-        get a list of slugs of this roles parents
-        (traverse up the graph)
-        """
-        parents = []
-        node = self.parent
-        while node:
-            parents.append(node.slug)
-            node = node.parent
-        return parents
+    def get_all_parents(self):
+        # TODO: Is this necessary?
+        pass
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
-        self.super(Role, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
+
+    @property
+    def permissions_names(self):
+        return ', '.join((permission.name for permission in self.permissions.all()))
 
     def get_permission_slugs_for_role(self):
         """
@@ -112,8 +111,15 @@ class Role(models.Model):
         """
         return [permission.slug for permission in self.permission]
 
+    @property
+    def parents_names(self):
+        return ', '.join((parent.name for parent in self.parents.all()))
+
     def get_parent_slugs_for_role(self):
         return [parent.slug for parent in self.parents]
+
+    def __str__(self):
+        return self.name
 
 
 class User(AbstractBaseUser):
@@ -168,7 +174,7 @@ class ApplicantProfile(Profile):
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
 
-    # add more applicant specific fields
+    # TODO: add more applicant specific fields
 
 
 class CustomerProfile(Profile):

@@ -6,9 +6,9 @@ from django.shortcuts import redirect, render
 from django.views.generic.edit import UpdateView
 from django.contrib import messages
 
-from .forms import PermissionForm
+from .forms import PermissionForm, RoleForm
 from .models import Permission, Role
-from .tables import PermissionTable
+from .tables import PermissionTable, RoleTable
 from .utils import JsonResponse
 
 
@@ -46,7 +46,50 @@ def profiles(request):
 
 
 def roles(request):
-    return render(request, 'core/roles.html')
+    table = RoleTable(Role.objects.order_by('name').all())
+    table.paginate(page=request.GET.get('page', 1), per_page=2)
+    return render(request, 'core/table.html', {
+        'name': 'role',
+        'table': table
+    })
+
+
+def create_role(request):
+    if request.method == 'POST':
+        form = RoleForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/roles')
+    else:
+        form = RoleForm()
+    return render(request, 'core/create.html', {
+        'name': 'role',
+        'form': form
+    })
+
+class RoleUpdate(UpdateView):
+    """
+    Generates the edit form and autofills existing details.
+    """
+    model = Role
+    form_class = RoleForm
+    template_name = 'core/create.html'
+    success_url = '/roles'
+
+    def get_context_data(self, *args, **kwargs):
+        """
+        We have to override this method in order to add `name` to the context
+        :param args:
+        :param kwargs:
+        :return: Supplemented request context
+        """
+        context = super().get_context_data(*args, **kwargs)
+        context['name'] = 'role'
+        return context
+
+
+def delete_role(request, role_id):
+    pass
 
 
 def permissions(request):
@@ -81,6 +124,7 @@ def create_permission(request):
     else:
         form = PermissionForm()
     return render(request, 'core/create.html', {
+        'name': 'permission',
         'form': form
     })
 
@@ -93,6 +137,17 @@ class PermissionUpdate(UpdateView):
     form_class = PermissionForm
     template_name = 'core/create.html'
     success_url = '/permissions'
+
+    def get_context_data(self, *args, **kwargs):
+        """
+        We have to override this method in order to add `name` to the context
+        :param args:
+        :param kwargs:
+        :return: Supplemented request context
+        """
+        context = super().get_context_data(*args, **kwargs)
+        context['name'] = 'permission'
+        return context
 
 
 def delete_permission(request, permission_id):
