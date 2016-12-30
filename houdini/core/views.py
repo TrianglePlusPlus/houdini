@@ -89,7 +89,11 @@ class RoleUpdate(UpdateView):
 
 
 def delete_role(request, role_id):
-    pass
+    role_to_delete = Role.objects.get(pk=role_id)
+    message = 'Role "' + role_to_delete.name + '" successfully deleted.'
+    if role_to_delete.delete():
+        messages.success(request, message)
+    return redirect('roles')
 
 
 def permissions(request):
