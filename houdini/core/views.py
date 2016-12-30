@@ -52,6 +52,27 @@ def create_application(request):
     })
 
 
+class ApplicationUpdate(UpdateView):
+    """
+    Generates the edit form and autofills existing details.
+    """
+    model = Application
+    form_class = ApplicationForm
+    template_name = 'core/create.html'
+    success_url = '/applications'
+
+    def get_context_data(self, *args, **kwargs):
+        """
+        We have to override this method in order to add `name` to the context
+        :param args:
+        :param kwargs:
+        :return: Supplemented request context
+        """
+        context = super().get_context_data()
+        context['name'] = 'application'
+        return context
+
+
 def delete_application(request, application_id):
     application_to_delete = Application.objects.get(pk=application_id)
     message = 'Application "' + application_to_delete.name + '" successfully deleted.'
@@ -111,7 +132,7 @@ class RoleUpdate(UpdateView):
         :param kwargs:
         :return: Supplemented request context
         """
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['name'] = 'role'
         return context
 
@@ -177,7 +198,7 @@ class PermissionUpdate(UpdateView):
         :param kwargs:
         :return: Supplemented request context
         """
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['name'] = 'permission'
         return context
 

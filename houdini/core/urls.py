@@ -8,6 +8,7 @@ urlpatterns = [
     url(r'^hierarchy$', views.hierarchy, name='hierarchy'),
     url(r'^applications$', views.applications, name='applications'),
     url(r'^applications/create$', views.create_application, name='create_application'),
+    url(r'^applications/edit/(?P<pk>\d+)$', views.ApplicationUpdate.as_view(), name='edit_application'),
     url(r'^applications/delete/(\d+)$', views.delete_application, name='delete_application'),
     url(r'^users$', views.users, name='users'),
     url(r'^profiles$', views.profiles, name='profiles'),
