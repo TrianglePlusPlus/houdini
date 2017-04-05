@@ -45,7 +45,7 @@ def create_application(request):
             form.save()
             return redirect('/applications')
     else:
-        form = ApplicationForm
+        form = ApplicationForm()
     return render(request, 'core/create.html', {
         'name': 'application',
         'form': form

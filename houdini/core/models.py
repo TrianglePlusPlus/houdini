@@ -152,6 +152,8 @@ class User(AbstractBaseUser):
 
     roles = models.ManyToManyField(Role)
 
+    USERNAME_FIELD = 'username'
+
 
 class Profile(models.Model):
     class Meta:
@@ -160,45 +162,53 @@ class Profile(models.Model):
     @classmethod
     def get_all_profiles(cls):
         """
-        get all available profile subclasses
+        Get a dictionary of profile names to their actual classes
+            { 'EmployeeProfile': <class 'core.models.EmployeeProfile'>, ...}
         """
-        return [profile.__name__ for profile in cls.__subclasses__]
+        profiles = {}
+        for profile in cls.__subclasses__():
+            profiles[profile.__name__] = profile
+        return profiles
 
 
 class EmployeeProfile(Profile):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     phone = models.CharField(max_length=24)
     dob = models.CharField(max_length=24)
-    classyear = models.IntegerField()
+    class_year = models.IntegerField()
     school = models.CharField(max_length=3)
     major = models.CharField(max_length=128)
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
     is_abroad = models.BooleanField(default=False)
     home_service = models.IntegerField()
+    roles = models.ManyToManyField('Role')
 
 
 class ApplicantProfile(Profile):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
-    classyear = models.IntegerField()
+    class_year = models.IntegerField()
     school = models.CharField(max_length=3)
     major = models.CharField(max_length=128)
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
+    roles = models.ManyToManyField('Role')
 
     # TODO: add more applicant specific fields
 
 
 class CustomerProfile(Profile):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
+    roles = models.ManyToManyField('Role')
 
 
 class AlumnusProfile(Profile):
     user = models.ForeignKey(User, on_delete=models.PROTECT)
     phone = models.CharField(max_length=24)
     dob = models.CharField(max_length=24)
-    classyear = models.IntegerField()
+    class_year = models.IntegerField()
     school = models.CharField(max_length=3)
     major = models.CharField(max_length=128)
     race = models.CharField(max_length=64)
     sex = models.CharField(max_length=32)
+    roles = models.ManyToManyField('Role')

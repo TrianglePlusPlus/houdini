@@ -34,6 +34,8 @@ ADMINS = (
 )
 
 
+AUTH_USER_MODEL = 'core.User'
+
 # Application definition
 
 INSTALLED_APPS = [
