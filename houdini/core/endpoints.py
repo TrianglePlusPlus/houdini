@@ -1,8 +1,9 @@
-import jwt
 from django.http import HttpResponse
 from django.contrib.auth import login, logout, authenticate
+import jwt
+import json
 
-from .models import Application, Profile, Role
+from .models import Application, Profile, Role, RolesToPermissions
 
 
 # Helper functions and classes
@@ -28,7 +29,7 @@ def authenticate_jwt(jwt_string, app_secret):
 
 
 def get_app(app_key):
-    app = Application.objects.filter(app_key=app_key)
+    app = Application.objects.filter(key=app_key)
     if app.count() != 1:
         return None
     else:
@@ -56,7 +57,7 @@ def login_user(request):
     if jwt_string is None:
         # We'll return a server error if they don't actually send anything
         return HttpResponse(status=500)
-    data = authenticate_jwt(jwt_string, app.app_secret)
+    data = authenticate_jwt(jwt_string, app.secret)
     if data is None:
         return HttpResponseUnauthorized('App key or web token signature invalid.')
     # App exists and the data is signed correctly
@@ -71,3 +72,14 @@ def login_user(request):
     # Get all of the roles the user has
     user_roles = set(user.roles_set.all())
     relevant_roles = profile_roles.intersection(user_roles)
+    # Now get all of the permissions for every role
+    permissions = set()
+    for role in relevant_roles:
+        role_permissions = set(json.loads(RolesToPermissions.objects.get(role=role)))
+        permissions.update(role_permissions)
+    response_data = {}
+    response_data['permissions'] = [permission.name for permission in permissions]
+    response_data['roles'] = [role.name for role in relevant_roles]
+    response_data['roles'] += [role.slug for role in relevant_roles]
+    response_jwt = jwt.encode(response_data, app.secret)
+    return HttpResponse(response_jwt)

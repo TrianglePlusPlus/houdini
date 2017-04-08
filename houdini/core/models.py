@@ -1,5 +1,6 @@
 import json
 import uuid
+from queue import Queue
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
@@ -9,8 +10,8 @@ from django.utils import timezone
 
 class Application(models.Model):
     name = models.CharField(max_length=64, unique=True)
-    app_key = models.CharField(max_length=32, blank=True)
-    app_secret = models.CharField(max_length=32, blank=True)
+    key = models.CharField(max_length=32, blank=True)
+    secret = models.CharField(max_length=32, blank=True)
 
     # JSON serialized string of profile names
     profiles = models.TextField()
@@ -21,17 +22,17 @@ class Application(models.Model):
         return application
 
     def save(self, *args, **kwargs):
-        if not self.app_key:
-            self.generate_app_key()
-        if not self.app_secret:
-            self.generate_app_secret()
+        if not self.key:
+            self.generate_key()
+        if not self.secret:
+            self.generate_secret()
         super().save(args, kwargs)
 
-    def generate_app_key(self):
-        self.app_key = uuid.uuid4().hex
+    def generate_key(self):
+        self.key = uuid.uuid4().hex
 
-    def generate_app_secret(self):
-        self.app_secret = uuid.uuid4().hex
+    def generate_secret(self):
+        self.secret = uuid.uuid4().hex
 
     def add_profile(self, profile_name):
         """
@@ -121,7 +122,7 @@ class Role(models.Model):
         """
         @:return A list of the slugs for all of this role's permissions
         """
-        return [permission.slug for permission in self.permission]
+        return [permission.slug for permission in self.permissions]
 
     @property
     def parents_names(self):
@@ -130,8 +131,41 @@ class Role(models.Model):
     def get_parent_slugs_for_role(self):
         return [parent.slug for parent in self.parents]
 
+    def get_all_permissions(self):
+        permissions = set(self.permissions_set.all())
+        search_queue = Queue((parent for parent in self.parents_set.all()))
+        while not search_queue.empty():
+            role = search_queue.get()
+            for permission in role.permissions_set.all():
+                permissions.add(permission)
+            for parent in role.parents_set.all():
+                search_queue.put(parent)
+        return permissions
+
     def __str__(self):
         return self.name
+
+
+class RolesToPermissions(models.Model):
+    role = models.ForeignKey('Role')
+    permisions = models.TextField()
+
+    @staticmethod
+    def refresh_table():
+        """
+        Clears the entire table and for every role gathers all of its permissions
+        :return: void
+        """
+        # First clear the entire table
+        RolesToPermissions.objects.all().delete()
+        # Now regenerate all of the mappings
+        for role in Role.objects.all():
+            permissions = role.get_all_permissions()
+            permissions_list = [permission.name for permission in permissions]
+            permissions_list += [permission.slug for permission in permissions]
+            permissions_string = json.dumps(permissions_list)
+            mapping = RolesToPermissions(role, permissions)
+            mapping.save()
 
 
 class User(AbstractBaseUser):
