@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'core',
+    'client',
 ]
 
 MIDDLEWARE = [
@@ -134,3 +135,4 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 MESSAGE_TAGS = {
     messages_constants.ERROR: 'danger'
 }
+

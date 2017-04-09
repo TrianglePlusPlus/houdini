@@ -1,0 +1,9 @@
+<h3>Login</h3>
+
+<!-- TODO: should be a django forms.py form-->
+<form action="" method="post">
+    {% csrf_token %}
+    <p>email: <input type="email" name="email"></p>
+    <p>password: <input type="password" name="password"></p>
+    <p><button type="submit">login</button></p>
+</form>
