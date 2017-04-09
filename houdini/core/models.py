@@ -172,77 +172,66 @@ class User(AbstractBaseUser):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True)
     last_name = models.CharField(max_length=32)
-    email = models.EmailField(max_length=32, unique=True)
-    username = models.CharField(max_length=32, unique=True)
-    is_staff = models.BooleanField(default=False)
+    email = models.EmailField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
-    address1 = models.CharField(max_length=128, null=True)
-    address2 = models.CharField(max_length=128, null=True)
-    city = models.CharField(max_length=128, null=True)
-    state = models.CharField(max_length=64, null=True)
-    zip = models.CharField(max_length=11, null=True)
+    USERNAME_FIELD = 'email'
 
-    roles = models.ManyToManyField(Role)
-
-    USERNAME_FIELD = 'username'
-
-
-class Profile(models.Model):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def get_all_profiles(cls):
-        """
-        Get a dictionary of profile names to their actual classes
-            { 'EmployeeProfile': <class 'core.models.EmployeeProfile'>, ...}
-        """
-        profiles = {}
-        for profile in cls.__subclasses__():
-            profiles[profile.__name__] = profile
-        return profiles
-
-
-class EmployeeProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    phone = models.CharField(max_length=24)
-    dob = models.CharField(max_length=24)
-    class_year = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
-    is_abroad = models.BooleanField(default=False)
-    home_service = models.IntegerField()
-    roles = models.ManyToManyField('Role')
-
-
-class ApplicantProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    class_year = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
-    roles = models.ManyToManyField('Role')
-
-    # TODO: add more applicant specific fields
-
-
-class CustomerProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    roles = models.ManyToManyField('Role')
-
-
-class AlumnusProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    phone = models.CharField(max_length=24)
-    dob = models.CharField(max_length=24)
-    class_year = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
-    roles = models.ManyToManyField('Role')
+# class Profile(models.Model):
+#     class Meta:
+#         abstract = True
+#
+#     @classmethod
+#     def get_all_profiles(cls):
+#         """
+#         Get a dictionary of profile names to their actual classes
+#             { 'EmployeeProfile': <class 'core.models.EmployeeProfile'>, ...}
+#         """
+#         profiles = {}
+#         for profile in cls.__subclasses__():
+#             profiles[profile.__name__] = profile
+#         return profiles
+#
+#
+# class EmployeeProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     phone = models.CharField(max_length=24)
+#     dob = models.CharField(max_length=24)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     is_abroad = models.BooleanField(default=False)
+#     home_service = models.IntegerField()
+#     roles = models.ManyToManyField('Role')
+#
+#
+# class ApplicantProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     roles = models.ManyToManyField('Role')
+#
+#     # TODO: add more applicant specific fields
+#
+#
+# class CustomerProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     roles = models.ManyToManyField('Role')
+#
+#
+# class AlumnusProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     phone = models.CharField(max_length=24)
+#     dob = models.CharField(max_length=24)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     roles = models.ManyToManyField('Role')

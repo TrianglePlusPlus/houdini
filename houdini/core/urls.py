@@ -1,6 +1,7 @@
 from django.conf.urls import url
 
 from . import views
+from . import endpoints
 
 
 urlpatterns = [
@@ -20,4 +21,5 @@ urlpatterns = [
     url(r'^permissions/create$', views.create_permission, name='create_permission'),
     url(r'^permissions/edit/(?P<pk>\d+)$', views.PermissionUpdate.as_view(), name='edit_permission'),
     url(r'^permissions/delete/(\d+)$', views.delete_permission, name='delete_permission'),
+    url(r'^login', endpoints.LoginEndpoint.as_view(), name='login_user')
 ]
