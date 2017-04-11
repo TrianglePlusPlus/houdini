@@ -4,14 +4,17 @@ from django.contrib.auth import login, logout, authenticate
 import jwt
 import json
 
-from .models import Application, Role, RolesToPermissions
+from .models import Application, User, RolesToPermissions
 
 
 # Helper functions and classes
 
 
 class HttpResponseUnauthorized(HttpResponse):
-    """Http 401 response"""
+    """
+    HTTP 401 response
+    Used when a request is not signed correctly
+    """
 
     def __init__(self, reason=None):
         if reason is None:
@@ -20,7 +23,21 @@ class HttpResponseUnauthorized(HttpResponse):
             super().__init__('401 Unauthorized: ' + reason, status=401)
 
 
-##### Endpoints
+class HttpResponseConflict(HttpResponse):
+    """
+    HTTP 409
+    Used when a request attempts to create a model that conflicts
+    with an existing model in the database
+    """
+
+    def __init__(self, reason=None):
+        if reason is None:
+            super().__init__('409 Conflict', status=409)
+        else:
+            super().__init__('409 Conflict: ' + reason, status=409)
+
+
+# Endpoints
 
 
 # login
@@ -55,6 +72,15 @@ class Endpoint(View):
             return app[0]
 
     def validate_request(self):
+        """
+        Checks to make sure that the request is valid:
+             - Method is POST
+             - App key exists and the corresponding app exists
+             - JWT string exists
+             - JWT is properly signed
+         Sets self.is_valid_request to False if any tests fail
+        :return: Error response if applicable, otherwise no return type
+        """
         if self.request.method != 'POST':
             self.is_valid_request = False
             return HttpResponse(status=500)
@@ -77,12 +103,12 @@ class Endpoint(View):
 
 class LoginEndpoint(Endpoint):
     def post(self):
-        valid = self.validate_request()
+        error_response = self.validate_request()
         if not self.is_valid_request:
-            return valid
-        username = self.data['username']
+            return error_response
+        email = self.data['email']
         password = self.data['password']
-        user = authenticate(user=username, password=password)
+        user = authenticate(email=email, password=password)
         if user is None:
             return HttpResponseUnauthorized('Invalid user/password combination')
         # Get all of the roles for the profiles they are logging in as
@@ -105,9 +131,15 @@ class LoginEndpoint(Endpoint):
 
 class CreateUserEndpoint(Endpoint):
     def post(self):
-        valid = self.validate_request()
+        error_response = self.validate_request()
         if not self.is_valid_request:
-            return valid
-        username = self.data['username']
+            return error_response
+        email = self.data['email']
         password = self.data['password']
-        # TODO: Finish this view
+        # Check to see whether a user with that username exists
+        if User.objects.filter(email=email).count() != 0:
+            # A user already exists so return an error
+            return HttpResponseConflict('User already exists')
+        # TODO
+        return HttpResponse('Hello woyld!')
+
