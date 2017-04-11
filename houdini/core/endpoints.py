@@ -1,6 +1,8 @@
 from django.http import HttpResponse
 from django.views import View
 from django.contrib.auth import login, logout, authenticate
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 import jwt
 import json
 
@@ -37,6 +39,20 @@ class HttpResponseConflict(HttpResponse):
             super().__init__('409 Conflict: ' + reason, status=409)
 
 
+class HttpResponseInternalServerError(HttpResponse):
+    """
+    HTTP 500
+    Used when a the server encounters an unexpected condition
+    that prevents it from fulfilling the request.
+    """
+
+    def __init__(self, reason=None):
+        if reason is None:
+            super().__init__('500 Internal Server Error', status=500)
+        else:
+            super().__init__('500 Internal Server Error: ' + reason, status=500)
+
+
 # Endpoints
 
 
@@ -54,8 +70,12 @@ class Endpoint(View):
         self.data = None
         self.is_valid_request = True
 
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
     @staticmethod
-    def authenticate_jwt(self, jwt_string, app_secret):
+    def authenticate_jwt(jwt_string, app_secret):
         # Check to see if the signature is correct
         try:
             data = jwt.decode(jwt_string, app_secret)
@@ -83,26 +103,26 @@ class Endpoint(View):
         """
         if self.request.method != 'POST':
             self.is_valid_request = False
-            return HttpResponse(status=500)
+            return HttpResponseInternalServerError(reason="Request method is not POST.")
         app_key = self.request.POST.get('app_key', None)
         self.app = self.get_app(app_key)
         if self.app is None:
             self.is_valid_request = False
-            return HttpResponse(status=500)
+            return HttpResponseInternalServerError(reason="App not found.")
         self.jwt_string = self.request.POST.get('jwt_string', None)
         if self.jwt_string is None:
             # We'll return a server error if they don't actually send anything
             self.is_valid_request = False
-            return HttpResponse(status=500)
+            return HttpResponseInternalServerError(reason="JWT string missing.")
         self.data = self.authenticate_jwt(self.jwt_string, self.app.secret)
         if self.data is None:
             self.is_valid_request = False
-            return HttpResponseUnauthorized('App key or web token signature invalid.')
+            return HttpResponseUnauthorized(reason="Web token signature invalid.")
             # App exists and the data is signed correctly
 
 
 class LoginEndpoint(Endpoint):
-    def post(self):
+    def post(self, request):
         error_response = self.validate_request()
         if not self.is_valid_request:
             return error_response
@@ -112,17 +132,17 @@ class LoginEndpoint(Endpoint):
         if user is None:
             return HttpResponseUnauthorized('Invalid user/password combination')
         # Get all of the roles for the profiles they are logging in as
-        app_roles = self.app.roles_set.all()
+        app_roles = set(self.app.roles.all())
         # Get all of the roles the user has
-        user_roles = set(user.roles_set.all())
+        user_roles = set(user.roles.all())
         relevant_roles = app_roles.intersection(user_roles)
         # Now get all of the permissions for every role
         permissions = set()
         for role in relevant_roles:
-            role_permissions = set(json.loads(RolesToPermissions.objects.get(role=role)))
+            role_permissions = set(json.loads(RolesToPermissions.objects.get(role=role).permissions))
             permissions.update(role_permissions)
         response_data = {}
-        response_data['permissions'] = [permission.name for permission in permissions]
+        response_data['permissions'] = list(permissions)
         response_data['roles'] = [role.name for role in relevant_roles]
         response_data['roles'] += [role.slug for role in relevant_roles]
         response_jwt = jwt.encode(response_data, self.app.secret)

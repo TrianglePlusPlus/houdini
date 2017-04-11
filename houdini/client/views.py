@@ -1,23 +1,46 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
+from django.conf import settings
 from .decorators import *
 from datetime import datetime
 import requests
+import jwt
+from core.endpoints import Endpoint
 
 def login(request):
     if request.method == "POST":
-        # TODO: login
-        # data = { email, password }
         # make a JWT jwt_string of data signed with app_secret
-        # r = requests.post(endpoint, data={'app_key': app_key, jwt_string': jwt_string})
+        jwt_string = jwt.encode({
+            "email": request.POST.get("email"),
+            "password": request.POST.get("password")
+        }, settings.HOUDINI_SECRET)
 
-        # assign r.roles and r.permissions to session variables
+        # POST it to the login endpoint
+        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/login", data={
+            "app_key": settings.HOUDINI_KEY,
+            "jwt_string": jwt_string
+        })
+
+        data = Endpoint.authenticate_jwt(r.text, settings.HOUDINI_SECRET)
+        if data:
+            print(data)
+        # TODO: else, u fukt up
+        # TODO: handle status code
+
         # if logged in =>
-
-        # at login page, save session variables of loggedin_since, & roles+permissions as a set
-        request.session['logged_in_since'] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-        # then redirect to the "next" page (which will hit @login_required again)
-        return redirect(request.GET.get('next', ""))
+        if r.status_code == 200:
+            # assign r.roles and r.permissions to session variables
+            request.session["roles"] = data["roles"]
+            request.session["permissions"] = data["permissions"]
+            # at login page, save session variables of loggedin_since, & roles+permissions as a set
+            request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+            # then redirect to the "next" page (which will hit @login_required again)
+            return redirect(request.GET.get("next", ""))
+        else:
+            # TODO: use messages to be more specific
+            response = redirect("login")
+            response['Location'] += '?' + urllib.parse.urlencode({'next': request.GET.get("next", "")})
+            return response
     else:
         return render(request, "client/login.html")
 

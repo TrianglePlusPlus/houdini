@@ -4,13 +4,12 @@ from django.shortcuts import redirect
 from django.core.urlresolvers import reverse, resolve
 from datetime import datetime, timedelta
 import urllib.parse
-time_to_live = timedelta(minutes=15)
+time_to_live = timedelta(minutes=1)
 
 def login_required(fn):
     def new_fn(request, *args, **kwargs):
         # check if logged in
         if request.session.get('logged_in_since'):
-            print(request.session['logged_in_since'])
             if datetime.now() - datetime.strptime(request.session['logged_in_since'], "%Y-%m-%dT%H:%M:%S") < time_to_live:
                 # dope! return the function unmodified
                 return fn(request, *args, **kwargs)
@@ -67,7 +66,7 @@ def role_required(role):
 # POST data: {
 #     'app_key': __,
 #     'jwt_string': {
-#         username,
+#         email,
 #         password
 #     } => signed with app_secret
 # }
@@ -78,7 +77,7 @@ def role_required(role):
 
 # /new_user or /create_user
 # POST data: {
-#     username,
+#     email,
 #     password,
 #     ...
 # }

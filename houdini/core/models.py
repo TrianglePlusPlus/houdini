@@ -2,7 +2,7 @@ import json
 import uuid
 from queue import Queue
 
-from django.contrib.auth.models import AbstractBaseUser
+from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
@@ -13,8 +13,7 @@ class Application(models.Model):
     key = models.CharField(max_length=32, blank=True)
     secret = models.CharField(max_length=32, blank=True)
 
-    # JSON serialized string of profile names
-    profiles = models.TextField()
+    roles = models.ManyToManyField("Role")
 
     @classmethod
     def create(cls, name):
@@ -132,13 +131,13 @@ class Role(models.Model):
         return [parent.slug for parent in self.parents]
 
     def get_all_permissions(self):
-        permissions = set(self.permissions_set.all())
-        search_queue = Queue((parent for parent in self.parents_set.all()))
+        permissions = set(self.permissions.all())
+        search_queue = Queue((parent for parent in self.parents.all()))
         while not search_queue.empty():
             role = search_queue.get()
-            for permission in role.permissions_set.all():
+            for permission in role.permissions.all():
                 permissions.add(permission)
-            for parent in role.parents_set.all():
+            for parent in role.parents.all():
                 search_queue.put(parent)
         return permissions
 
@@ -148,7 +147,7 @@ class Role(models.Model):
 
 class RolesToPermissions(models.Model):
     role = models.ForeignKey('Role')
-    permisions = models.TextField()
+    permissions = models.TextField()
 
     @staticmethod
     def refresh_table():
@@ -164,8 +163,13 @@ class RolesToPermissions(models.Model):
             permissions_list = [permission.name for permission in permissions]
             permissions_list += [permission.slug for permission in permissions]
             permissions_string = json.dumps(permissions_list)
-            mapping = RolesToPermissions(role, permissions)
+            mapping = RolesToPermissions(role=role, permissions=permissions_string)
             mapping.save()
+
+
+class HoudiniUserManager(UserManager):
+    def get_by_natural_key(self, email):
+        return self.get(email=email)
 
 
 class User(AbstractBaseUser):
@@ -177,6 +181,10 @@ class User(AbstractBaseUser):
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = 'email'
+
+    roles = models.ManyToManyField("Role")
+
+    objects = HoudiniUserManager()
 
 # class Profile(models.Model):
 #     class Meta:
