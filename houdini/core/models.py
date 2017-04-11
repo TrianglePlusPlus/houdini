@@ -1,5 +1,6 @@
 import json
 import uuid
+from queue import Queue
 
 from django.contrib.auth.models import AbstractBaseUser
 from django.db import models
@@ -9,17 +10,29 @@ from django.utils import timezone
 
 class Application(models.Model):
     name = models.CharField(max_length=64, unique=True)
-    app_key = models.CharField(max_length=32)
-    app_secret = models.CharField(max_length=32)
+    key = models.CharField(max_length=32, blank=True)
+    secret = models.CharField(max_length=32, blank=True)
 
     # JSON serialized string of profile names
     profiles = models.TextField()
 
-    def generate_app_key(self):
-        self.app_key = uuid.uuid4().hex
+    @classmethod
+    def create(cls, name):
+        application = cls(name=name)
+        return application
 
-    def generate_app_secret(self):
-        self.app_secret = uuid.uuid4().hex
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.generate_key()
+        if not self.secret:
+            self.generate_secret()
+        super().save(args, kwargs)
+
+    def generate_key(self):
+        self.key = uuid.uuid4().hex
+
+    def generate_secret(self):
+        self.secret = uuid.uuid4().hex
 
     def add_profile(self, profile_name):
         """
@@ -109,7 +122,7 @@ class Role(models.Model):
         """
         @:return A list of the slugs for all of this role's permissions
         """
-        return [permission.slug for permission in self.permission]
+        return [permission.slug for permission in self.permissions]
 
     @property
     def parents_names(self):
@@ -118,75 +131,107 @@ class Role(models.Model):
     def get_parent_slugs_for_role(self):
         return [parent.slug for parent in self.parents]
 
+    def get_all_permissions(self):
+        permissions = set(self.permissions_set.all())
+        search_queue = Queue((parent for parent in self.parents_set.all()))
+        while not search_queue.empty():
+            role = search_queue.get()
+            for permission in role.permissions_set.all():
+                permissions.add(permission)
+            for parent in role.parents_set.all():
+                search_queue.put(parent)
+        return permissions
+
     def __str__(self):
         return self.name
+
+
+class RolesToPermissions(models.Model):
+    role = models.ForeignKey('Role')
+    permisions = models.TextField()
+
+    @staticmethod
+    def refresh_table():
+        """
+        Clears the entire table and for every role gathers all of its permissions
+        :return: void
+        """
+        # First clear the entire table
+        RolesToPermissions.objects.all().delete()
+        # Now regenerate all of the mappings
+        for role in Role.objects.all():
+            permissions = role.get_all_permissions()
+            permissions_list = [permission.name for permission in permissions]
+            permissions_list += [permission.slug for permission in permissions]
+            permissions_string = json.dumps(permissions_list)
+            mapping = RolesToPermissions(role, permissions)
+            mapping.save()
 
 
 class User(AbstractBaseUser):
     first_name = models.CharField(max_length=32)
     middle_name = models.CharField(max_length=32, null=True)
     last_name = models.CharField(max_length=32)
-    email = models.EmailField(max_length=32, unique=True)
-    username = models.CharField(max_length=32, unique=True)
-    is_staff = models.BooleanField(default=False)
+    email = models.EmailField(max_length=100, unique=True)
     is_active = models.BooleanField(default=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
-    address1 = models.CharField(max_length=128, null=True)
-    address2 = models.CharField(max_length=128, null=True)
-    city = models.CharField(max_length=128, null=True)
-    state = models.CharField(max_length=64, null=True)
-    zip = models.CharField(max_length=11, null=True)
+    USERNAME_FIELD = 'email'
 
-    roles = models.ManyToManyField(Role)
-
-
-class Profile(models.Model):
-    class Meta:
-        abstract = True
-
-    @classmethod
-    def get_all_profiles(cls):
-        """
-        get all available profile subclasses
-        """
-        return [profile.__name__ for profile in cls.__subclasses__]
-
-
-class EmployeeProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    phone = models.CharField(max_length=24)
-    dob = models.CharField(max_length=24)
-    classyear = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
-    is_abroad = models.BooleanField(default=False)
-    home_service = models.IntegerField()
-
-
-class ApplicantProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    classyear = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
-
-    # TODO: add more applicant specific fields
-
-
-class CustomerProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-
-
-class AlumnusProfile(Profile):
-    user = models.ForeignKey(User, on_delete=models.PROTECT)
-    phone = models.CharField(max_length=24)
-    dob = models.CharField(max_length=24)
-    classyear = models.IntegerField()
-    school = models.CharField(max_length=3)
-    major = models.CharField(max_length=128)
-    race = models.CharField(max_length=64)
-    sex = models.CharField(max_length=32)
+# class Profile(models.Model):
+#     class Meta:
+#         abstract = True
+#
+#     @classmethod
+#     def get_all_profiles(cls):
+#         """
+#         Get a dictionary of profile names to their actual classes
+#             { 'EmployeeProfile': <class 'core.models.EmployeeProfile'>, ...}
+#         """
+#         profiles = {}
+#         for profile in cls.__subclasses__():
+#             profiles[profile.__name__] = profile
+#         return profiles
+#
+#
+# class EmployeeProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     phone = models.CharField(max_length=24)
+#     dob = models.CharField(max_length=24)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     is_abroad = models.BooleanField(default=False)
+#     home_service = models.IntegerField()
+#     roles = models.ManyToManyField('Role')
+#
+#
+# class ApplicantProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     roles = models.ManyToManyField('Role')
+#
+#     # TODO: add more applicant specific fields
+#
+#
+# class CustomerProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     roles = models.ManyToManyField('Role')
+#
+#
+# class AlumnusProfile(Profile):
+#     user = models.ForeignKey(User, on_delete=models.PROTECT)
+#     phone = models.CharField(max_length=24)
+#     dob = models.CharField(max_length=24)
+#     class_year = models.IntegerField()
+#     school = models.CharField(max_length=3)
+#     major = models.CharField(max_length=128)
+#     race = models.CharField(max_length=64)
+#     sex = models.CharField(max_length=32)
+#     roles = models.ManyToManyField('Role')
