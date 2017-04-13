@@ -47,3 +47,11 @@ def login(request):
 @login_required
 def login_test(request):
     return HttpResponse("logged in successfully!")
+
+@role_required('my new role')
+def role_test(request):
+    return HttpResponse("logged in successfully, with a role!")
+
+@permission_required('my new permission')
+def permission_test(request):
+    return HttpResponse("logged in successfully, with a permission!")

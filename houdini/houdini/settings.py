@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from datetime import timedelta
 
 from django.contrib.messages import constants as messages_constants
 
@@ -27,6 +28,7 @@ SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
+TIME_TO_LIVE = timedelta(minutes=1)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
