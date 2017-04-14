@@ -2,10 +2,14 @@ import json
 import uuid
 from queue import Queue
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, UserManager
+from django.core.mail import send_mail
 from django.db import models
 from django.template.defaultfilters import slugify
+from django.urls import reverse
 from django.utils import timezone
+from datetime import datetime, timedelta
 
 
 class Application(models.Model):
@@ -180,6 +184,8 @@ class HoudiniUserManager(UserManager):
         email = self.normalize_email(email)
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
+        user.generate_activation_key()
+        user.send_activation_email()
         user.save(using=self._db)
         return user
 
@@ -192,7 +198,9 @@ class User(AbstractBaseUser):
     middle_name = models.CharField(max_length=32, null=True)
     last_name = models.CharField(max_length=32)
     email = models.EmailField(max_length=100, unique=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
+    activation_key = models.CharField(max_length=40)
+    key_expires = models.DateTimeField()
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = 'email'
@@ -200,6 +208,33 @@ class User(AbstractBaseUser):
     roles = models.ManyToManyField("Role")
 
     objects = HoudiniUserManager()
+
+    def generate_activation_key(self):
+        self.activation_key = uuid.uuid4().hex
+        self.key_expires = timezone.now() + timedelta(minutes=1) # TODO: change back to days=1
+
+    def send_activation_email(self, resend=False):
+        activation_link = settings.BUILD_ABSOLUTE_URL(reverse("activate", kwargs={'key':self.activation_key}))
+        if resend:
+            message = "Hello " + str(self) + "! Your old activation key expired so we have generated a new one for you. Go to this link to activate your account: " + activation_link
+        else:
+            message = "Hello " + str(self) + "! You have successfully registered for an account. Go to this link to activate your account: " + activation_link
+        send_mail(
+            "Activate your account",
+            message,
+            settings.EMAIL_HOST_USER,
+            [self.email],
+            fail_silently=False
+        )
+
+    # TODO: should there be a limit to the amount of activation keys you can generate?
+    # or maybe a time limit between each regeneration?
+    def regenerate_activation_key(self):
+        self.generate_activation_key()
+        self.send_activation_email(resend=True)
+
+    def __str__(self):
+        return self.first_name + ' ' + self.last_name
 
 # class Profile(models.Model):
 #     class Meta:

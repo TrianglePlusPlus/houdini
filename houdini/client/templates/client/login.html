@@ -1,12 +1,7 @@
-<h3>Login</h3>
+{% extends 'core/base.html' %}
+{% block content %}
 
-{% if messages %}
-  <ul class="messages">
-    {% for message in messages %}
-      <li class="{{ message.tags }}">{{ message }}</li>
-    {% endfor %}
-  </ul>
-{% endif %}
+<h3>Login</h3>
 
 {% if form.subject.errors %}
     <ol>
@@ -21,3 +16,5 @@
     {{ form.as_p }}
     <p><button type="submit">login</button></p>
 </form>
+
+{% endblock %}

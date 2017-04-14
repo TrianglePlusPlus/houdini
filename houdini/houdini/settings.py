@@ -30,6 +30,17 @@ HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
 TIME_TO_LIVE = timedelta(minutes=1)
 
+# Email
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
+EMAIL_HOST = os.getenv('EMAIL_HOST')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+
+BASE_URL = os.getenv('BASE_URL')
+def BUILD_ABSOLUTE_URL(relative_path):
+    return BASE_URL + relative_path
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

@@ -5,12 +5,15 @@ class LoginForm(forms.Form):
     password = forms.CharField(label='password', max_length=100, widget=forms.PasswordInput())
 
 class RegisterForm(forms.Form):
+    first_name = forms.CharField(label='first name', max_length=32)
+    middle_name = forms.CharField(label='middle name', max_length=32, required=False)
+    last_name = forms.CharField(label='last name', max_length=32)
     email = forms.CharField(label='email', max_length=100, widget=forms.EmailInput())
     confirm_email = forms.CharField(label='confirm email', max_length=100, widget=forms.EmailInput())
     password = forms.CharField(label='password', max_length=100, widget=forms.PasswordInput())
     confirm_password = forms.CharField(label='confirm password', max_length=100, widget=forms.PasswordInput())
 
-    # CAPSHCKA?
+    # TODO: CAPSHCKA?
 
     def clean(self):
         email = self.cleaned_data.get('email')

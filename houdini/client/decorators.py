@@ -17,7 +17,7 @@ def login_required(fn):
 
         # TODO: either redirect to the specified login page OR
         # go to the built-in-to-houdini-client login page
-        next_url = resolve(request.path_info).url_name
+        next_url = request.resolver_match.url_name
         response = redirect('login')
         response['Location'] += '?' + urllib.parse.urlencode({'next': next_url})
         return response

@@ -4,10 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from .decorators import *
 from .forms import *
+# TODO: make sure all datetimes are offset aware?
 from datetime import datetime
+from django.utils import timezone
 import requests
 import jwt
 from core.endpoints import Endpoint
+from core.models import User
 
 def login(request):
     if request.method == "POST":
@@ -54,6 +57,9 @@ def register(request):
         if form.is_valid():
             # make a JWT jwt_string of data signed with app_secret
             jwt_string = jwt.encode({
+                "first_name": form.cleaned_data.get("first_name"),
+                "middle_name": form.cleaned_data.get("middle_name"),
+                "last_name": form.cleaned_data.get("last_name"),
                 "email": form.cleaned_data.get("email"),
                 "password": form.cleaned_data.get("password")
             }, settings.HOUDINI_SECRET)
@@ -67,7 +73,8 @@ def register(request):
             # if user was successfully created
             if r.status_code == 201:
                 # TODO: check content of response? assign anything to session?
-                messages.success(request, "User successfully created")
+                # TODO: redirect to a "registration successful view"?
+                messages.success(request, "User successfully created! Check your email for an activation link.")
                 return redirect("index")
             else:
                 # TODO: use messages to be more specific on other status codes
@@ -79,17 +86,56 @@ def register(request):
         form = RegisterForm()
         return render(request, "client/register.html", {'form': form})
 
+def activate(request, key):
+    expired = False
+    if request.method == "POST":
+        try:
+            user = User.objects.get(activation_key=request.POST.get('key'))
+            if user.key_expires < timezone.now():
+                if not user.is_active:
+                    user.regenerate_activation_key()
+                    user.save()
+                    expired = False
+                    messages.success(request, "Check your email for a new activation link.")
+                else:
+                    messages.error(request, "User already activated")
+            # TODO: else?
+        except User.DoesNotExist:
+            messages.error(request, "Invalid activation key")
+    else:
+        try:
+            user = User.objects.get(activation_key=key)
+            if user.key_expires > timezone.now():
+                if not user.is_active:
+                    user.is_active=True
+                    user.save()
+                    messages.success(request, "User successfully activated!")
+                else:
+                    messages.error(request, "User already activated")
+            else:
+                if not user.is_active:
+                    messages.error(request, "Activation key has expired")
+                    # so we can offer to generate them a new activation key
+                    expired = True
+                else:
+                    messages.error(request, "User already activated")
+
+        except User.DoesNotExist:
+            messages.error(request, "Invalid activation key")
+
+    return render(request, "client/activation.html", {'expired': expired, 'key': key})
+
 @login_required
 def login_test(request):
-    return HttpResponse("logged in successfully!")
+    return render(request, "client/login_test.html")
 
 @role_required('my old role')
 def role_test(request):
-    return HttpResponse("logged in successfully, with a role!")
+    return render(request, "client/role_test.html")
 
 @permission_required('my new permission')
 def permission_test(request):
-    return HttpResponse("logged in successfully, with a permission!")
+    return render(request, "client/permission_test.html")
 
 def unauthorized_401(request):
     return render(request, "client/401.html")

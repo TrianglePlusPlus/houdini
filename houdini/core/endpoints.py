@@ -145,6 +145,7 @@ class LoginEndpoint(Endpoint):
         user = authenticate(email=email, password=password)
         if user is None:
             return HttpResponseUnauthorized('Invalid user/password combination')
+            # TODO: or user could just be inactive. do we need to be more specific?
         # Get all of the roles for the profiles they are logging in as
         app_roles = set(self.app.roles.all())
         # Get all of the roles the user has
@@ -163,25 +164,36 @@ class LoginEndpoint(Endpoint):
         return HttpResponse(response_jwt)
 
 
+class LogoutEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+
+
 class CreateUserEndpoint(Endpoint):
     def post(self, request):
         error_response = self.validate_request()
         if not self.is_valid_request:
             return error_response
+        first_name = self.data['first_name']
+        middle_name = self.data['middle_name']
+        last_name = self.data['last_name']
         email = self.data['email']
         password = self.data['password']
         # Check to see whether a user with that username exists
         if User.objects.filter(email=email).count() != 0:
             # A user already exists so return an error
             return HttpResponseConflict('User already exists')
+            # TODO: "email already in use?"
 
-        # TODO: create user
-        user = User.objects.create_user(email, password=password)
-
-        # TODO: ?
-        # user.first_name = "First"
-        # user.middle_name = "Middle"
-        # user.last_name = "Last"
+        # create user
+        user = User.objects.create_user(
+            email, password=password,
+            first_name=first_name,
+            middle_name=middle_name,
+            last_name=last_name
+        )
         # TODO: default roles/permissions?
         user.save()
 
@@ -189,5 +201,4 @@ class CreateUserEndpoint(Endpoint):
         # response_data = {}
         # response_jwt = jwt.encode(response_data, self.app.secret)
         # return HttpResponse(response_jwt)
-
         return HttpResponseCreated()
