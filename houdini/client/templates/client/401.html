@@ -1,0 +1,11 @@
+<h1>401 Unauthorized</h1>
+
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+<p>You do not have the required roles and/or permissions to visit this page.</p>

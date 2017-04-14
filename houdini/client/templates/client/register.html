@@ -1,4 +1,4 @@
-<h3>Login</h3>
+<h3>Register</h3>
 
 {% if messages %}
   <ul class="messages">
@@ -19,5 +19,5 @@
 <form action="" method="post">
     {% csrf_token %}
     {{ form.as_p }}
-    <p><button type="submit">login</button></p>
+    <p><button type="submit">register</button></p>
 </form>

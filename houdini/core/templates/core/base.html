@@ -22,11 +22,13 @@
 				<li><a href="/permissions"><span class="fa fa-list fa-fw"></span>Permissions</a></li>
 			</ul>
 		</div>
+
 		<div class="page">
 			<nav class="navbar navbar-default navbar-static-top">
 			</nav>
 			<div class="content container-fluid">
 				<div class="row">
+			        {% include 'core/messages.html' %}
 					{% block content %}
 					{% endblock %}
 				</div>

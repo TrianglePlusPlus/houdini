@@ -3,6 +3,7 @@
 from django.shortcuts import redirect
 from django.core.urlresolvers import reverse, resolve
 from django.conf import settings
+from django.contrib import messages
 from datetime import datetime
 import urllib.parse
 
@@ -27,15 +28,12 @@ def permission_required(permission):
         @login_required
         def wrapper(request, *args, **kwargs):
             # TODO: test that permission can be a list
-            print(permission)
-
             if permission in request.session["permissions"]:
                 # logged in, and we do have the permission
                 return fn(request, *args, **kwargs)
             else:
-                pass
-                # if they don't, return error page/status re: permissions
-                # TODO: django messages
+                # logged in, but we don't have the permission
+                return redirect("401")
         return wrapper
     return new_fn
 
@@ -48,16 +46,8 @@ def role_required(role):
                 # logged in, and we do have the role
                 return fn(request, *args, **kwargs)
             else:
-                pass
-                # if they don't, return error page/status re: roles
-                # TODO: django messages
+                # logged in, but we don't have the role
+                return redirect("401")
             return fn(request, *args, **kwargs)
         return wrapper
     return new_fn
-
-# /new_user or /create_user
-# POST data: {
-#     email,
-#     password,
-#     ...
-# }

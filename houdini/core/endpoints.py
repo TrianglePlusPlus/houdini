@@ -42,7 +42,7 @@ class HttpResponseConflict(HttpResponse):
 class HttpResponseInternalServerError(HttpResponse):
     """
     HTTP 500
-    Used when a the server encounters an unexpected condition
+    Used when the server encounters an unexpected condition
     that prevents it from fulfilling the request.
     """
 
@@ -51,6 +51,20 @@ class HttpResponseInternalServerError(HttpResponse):
             super().__init__('500 Internal Server Error', status=500)
         else:
             super().__init__('500 Internal Server Error: ' + reason, status=500)
+
+
+class HttpResponseCreated(HttpResponse):
+    """
+    HTTP 201
+    Used when the request to the server has been fulfilled
+    and has resulted in one or more new resources being created.
+    """
+
+    def __init__(self, reason=None):
+        if reason is None:
+            super().__init__('201 Created', status=201)
+        else:
+            super().__init__('201 Created: ' + reason, status=201)
 
 
 # Endpoints
@@ -150,7 +164,7 @@ class LoginEndpoint(Endpoint):
 
 
 class CreateUserEndpoint(Endpoint):
-    def post(self):
+    def post(self, request):
         error_response = self.validate_request()
         if not self.is_valid_request:
             return error_response
@@ -160,6 +174,20 @@ class CreateUserEndpoint(Endpoint):
         if User.objects.filter(email=email).count() != 0:
             # A user already exists so return an error
             return HttpResponseConflict('User already exists')
-        # TODO
-        return HttpResponse('Hello woyld!')
 
+        # TODO: create user
+        user = User.objects.create_user(email, password=password)
+
+        # TODO: ?
+        # user.first_name = "First"
+        # user.middle_name = "Middle"
+        # user.last_name = "Last"
+        # TODO: default roles/permissions?
+        user.save()
+
+        # TODO: what to send back?
+        # response_data = {}
+        # response_jwt = jwt.encode(response_data, self.app.secret)
+        # return HttpResponse(response_jwt)
+
+        return HttpResponseCreated()
