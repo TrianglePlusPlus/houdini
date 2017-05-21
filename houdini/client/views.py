@@ -2,15 +2,21 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
-from .decorators import *
-from .forms import *
+from django.contrib.auth import get_user
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
+from django.utils import timezone
+
 # TODO: make sure all datetimes are offset aware?
 from datetime import datetime
-from django.utils import timezone
-import requests
 import jwt
+import requests
+import urllib.parse
+
 from core.endpoints import Endpoint
 from core.models import User
+from .decorators import login_required, role_required, permission_required
+from .forms import LoginForm, RegisterForm
 
 def login(request):
     if request.method == "POST":
@@ -29,6 +35,16 @@ def login(request):
         # if we were successfully logged in
         if r.status_code == 200:
             messages.success(request, "Successfully logged in")
+
+            # TODO: needs to become admin.models.User
+            user = User.objects.get(email=request.POST.get("email"))
+            if user is None:
+                # TODO: in this case, i.e. where you authenticate successfully against the auth server
+                #       but not locally, we might want to suggest that the user create a local account
+                #       that will link up with the existing auth server account (how would we do this?)
+                # TODO: i also think i need to include core.http
+                return HttpResponseUnauthorized('Invalid user/password combination')
+            auth_login(request, user)
 
             # assign r.roles and r.permissions to session variables
             data = Endpoint.authenticate_jwt(r.text, settings.HOUDINI_SECRET)
@@ -125,15 +141,47 @@ def activate(request, key):
 
     return render(request, "client/activation.html", {'expired': expired, 'key': key})
 
+def logout(request):
+    # make a JWT jwt_string of data signed with app_secret
+    jwt_string = jwt.encode({
+        "email": request.POST.get("email"),
+    }, settings.HOUDINI_SECRET)
+
+    # POST it to the logout endpoint
+    r = requests.post(settings.HOUDINI_SERVER + "/endpoints/logout", data={
+        "app_key": settings.HOUDINI_KEY,
+        "jwt_string": jwt_string
+    })
+
+    # if we were successfully logged out
+    if r.status_code == 200:
+        messages.success(request, "Successfully logged out")
+
+        auth_logout(request)
+
+        data = Endpoint.authenticate_jwt(r.text, settings.HOUDINI_SECRET)
+        # TODO: ?
+        request.session["roles"] = []
+        request.session["permissions"] = []
+        request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
+        # then redirect to the home page
+        return redirect('index')
+    else:
+        # TODO: will a logout ever actually fail? do we even need to hit the server?
+        # TODO: use messages to be more specific on other status codes
+        messages.error(request, r.text)
+
+        return redirect('index')
+
 @login_required
 def login_test(request):
     return render(request, "client/login_test.html")
 
-@role_required('my old role')
+@role_required('new role')
 def role_test(request):
     return render(request, "client/role_test.html")
 
-@permission_required('my new permission')
+@permission_required('new permission')
 def permission_test(request):
     return render(request, "client/permission_test.html")
 

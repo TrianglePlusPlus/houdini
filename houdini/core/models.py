@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import json
 import uuid
 from queue import Queue
@@ -9,7 +10,6 @@ from django.db import models
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.utils import timezone
-from datetime import datetime, timedelta
 
 
 class Application(models.Model):
@@ -211,7 +211,7 @@ class User(AbstractBaseUser):
 
     def generate_activation_key(self):
         self.activation_key = uuid.uuid4().hex
-        self.key_expires = timezone.now() + timedelta(minutes=1) # TODO: change back to days=1
+        self.key_expires = timezone.now() + settings.ACCOUNT_ACTIVATION_TIME
 
     def send_activation_email(self, resend=False):
         activation_link = settings.BUILD_ABSOLUTE_URL(reverse("activate", kwargs={'key':self.activation_key}))
@@ -232,6 +232,16 @@ class User(AbstractBaseUser):
     def regenerate_activation_key(self):
         self.generate_activation_key()
         self.send_activation_email(resend=True)
+
+    def is_logged_in(self, request):
+        if request.session.get('logged_in_since'):
+            return (datetime.now() - datetime.strptime(request.session['logged_in_since'], "%Y-%m-%dT%H:%M:%S")) < settings.TIME_TO_LIVE
+        else:
+            return False
+
+    @property
+    def is_authenticated(self):
+        return True
 
     def __str__(self):
         return self.first_name + ' ' + self.last_name

@@ -1,80 +1,24 @@
-from django.http import HttpResponse
-from django.views import View
 from django.contrib.auth import login, logout, authenticate
-from django.views.decorators.csrf import csrf_exempt
+from django.http import HttpResponse
 from django.shortcuts import render
-import jwt
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
+
 import json
+import jwt
 
 from .models import Application, User, RolesToPermissions
-
-
-# Helper functions and classes
-
-
-class HttpResponseUnauthorized(HttpResponse):
-    """
-    HTTP 401 response
-    Used when a request is not signed correctly
-    """
-
-    def __init__(self, reason=None):
-        if reason is None:
-            super().__init__('401 Unauthorized', status=401)
-        else:
-            super().__init__('401 Unauthorized: ' + reason, status=401)
-
-
-class HttpResponseConflict(HttpResponse):
-    """
-    HTTP 409
-    Used when a request attempts to create a model that conflicts
-    with an existing model in the database
-    """
-
-    def __init__(self, reason=None):
-        if reason is None:
-            super().__init__('409 Conflict', status=409)
-        else:
-            super().__init__('409 Conflict: ' + reason, status=409)
-
-
-class HttpResponseInternalServerError(HttpResponse):
-    """
-    HTTP 500
-    Used when the server encounters an unexpected condition
-    that prevents it from fulfilling the request.
-    """
-
-    def __init__(self, reason=None):
-        if reason is None:
-            super().__init__('500 Internal Server Error', status=500)
-        else:
-            super().__init__('500 Internal Server Error: ' + reason, status=500)
-
-
-class HttpResponseCreated(HttpResponse):
-    """
-    HTTP 201
-    Used when the request to the server has been fulfilled
-    and has resulted in one or more new resources being created.
-    """
-
-    def __init__(self, reason=None):
-        if reason is None:
-            super().__init__('201 Created', status=201)
-        else:
-            super().__init__('201 Created: ' + reason, status=201)
-
+from . import http
 
 # Endpoints
 
-
 # login
 # logout
+# create user
 # change password
 # reset password
-
+# add role          ?
+# delete role       ?
 
 class Endpoint(View):
     def __init__(self, **kwargs):
@@ -146,6 +90,7 @@ class LoginEndpoint(Endpoint):
         if user is None:
             return HttpResponseUnauthorized('Invalid user/password combination')
             # TODO: or user could just be inactive. do we need to be more specific?
+
         # Get all of the roles for the profiles they are logging in as
         app_roles = set(self.app.roles.all())
         # Get all of the roles the user has
@@ -169,6 +114,12 @@ class LogoutEndpoint(Endpoint):
         error_response = self.validate_request()
         if not self.is_valid_request:
             return error_response
+        # TODO: logout the user
+        #       maybe call logout(request, user)
+        # TODO: return a HttpReponse i guess, with status code? or JWT
+        #       depending on the success/failure of the logout
+        response_jwt = jwt.encode({}, self.app.secret)
+        return HttpResponse(response_jwt)
 
 
 class CreateUserEndpoint(Endpoint):
@@ -181,6 +132,7 @@ class CreateUserEndpoint(Endpoint):
         last_name = self.data['last_name']
         email = self.data['email']
         password = self.data['password']
+
         # Check to see whether a user with that username exists
         if User.objects.filter(email=email).count() != 0:
             # A user already exists so return an error
