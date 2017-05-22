@@ -1,7 +1,7 @@
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import check_password
 
-from .models import User # TODO: can we say from django.contrib.auth.models import User?
+from houdini_server.models import User # TODO: can we say from django.contrib.auth.models import User?
 
 class AuthBackend(ModelBackend):
     def authenticate(self, email=None, password=None):

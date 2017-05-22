@@ -54,7 +54,7 @@ ADMINS = (
 
 
 AUTH_USER_MODEL = 'houdini_server.User'
-AUTHENTICATION_BACKENDS = ['houdini_server.auth_backend.AuthBackend']
+AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.AuthBackend']
 # TODO: do we want this?
 # SESSION_SAVE_EVERY_REQUEST = True
 
@@ -80,7 +80,7 @@ MIDDLEWARE = [
     # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'houdini_server.middleware.AuthenticationMiddleware'
+    'houdini_client.middleware.AuthenticationMiddleware'
 ]
 
 ROOT_URLCONF = 'houdini.urls'
