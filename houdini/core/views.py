@@ -6,9 +6,9 @@ from django.shortcuts import redirect, render
 from django.views.generic.edit import UpdateView
 from django.contrib import messages
 
-from .forms import PermissionForm, RoleForm
-from .models import Permission, Role
-from .tables import PermissionTable, RoleTable
+from .forms import ApplicationForm, RoleForm, PermissionForm
+from .models import Application, Role, Permission
+from .tables import ApplicationTable, RoleTable, PermissionTable
 from .utils import JsonResponse
 
 
@@ -30,7 +30,55 @@ def index(request):
 
 
 def applications(request):
-    return render(request, 'core/applications.html')
+    table = ApplicationTable(Application.objects.order_by('name').all())
+    table.paginate(page=request.GET.get('page', 1), per_page=2)
+    return render(request, 'core/table.html', {
+        'name': 'application',
+        'table': table
+    })
+
+
+def create_application(request):
+    if request.method == 'POST':
+        form = ApplicationForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('/applications')
+    else:
+        form = ApplicationForm()
+    return render(request, 'core/create.html', {
+        'name': 'application',
+        'form': form
+    })
+
+
+class ApplicationUpdate(UpdateView):
+    """
+    Generates the edit form and autofills existing details.
+    """
+    model = Application
+    form_class = ApplicationForm
+    template_name = 'core/create.html'
+    success_url = '/applications'
+
+    def get_context_data(self, *args, **kwargs):
+        """
+        We have to override this method in order to add `name` to the context
+        :param args:
+        :param kwargs:
+        :return: Supplemented request context
+        """
+        context = super().get_context_data()
+        context['name'] = 'application'
+        return context
+
+
+def delete_application(request, application_id):
+    application_to_delete = Application.objects.get(pk=application_id)
+    message = 'Application "' + application_to_delete.name + '" successfully deleted.'
+    if application_to_delete.delete():
+        messages.success(request, message)
+    return redirect('applications')
 
 
 def hierarchy(request):
@@ -67,6 +115,7 @@ def create_role(request):
         'form': form
     })
 
+
 class RoleUpdate(UpdateView):
     """
     Generates the edit form and autofills existing details.
@@ -83,7 +132,7 @@ class RoleUpdate(UpdateView):
         :param kwargs:
         :return: Supplemented request context
         """
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['name'] = 'role'
         return context
 
@@ -149,7 +198,7 @@ class PermissionUpdate(UpdateView):
         :param kwargs:
         :return: Supplemented request context
         """
-        context = super().get_context_data(*args, **kwargs)
+        context = super().get_context_data()
         context['name'] = 'permission'
         return context
 

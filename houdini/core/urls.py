@@ -1,12 +1,16 @@
 from django.conf.urls import url
 
 from . import views
+from . import endpoints
 
 
 urlpatterns = [
     url(r'^$', views.index, name='index'),
     url(r'^hierarchy$', views.hierarchy, name='hierarchy'),
     url(r'^applications$', views.applications, name='applications'),
+    url(r'^applications/create$', views.create_application, name='create_application'),
+    url(r'^applications/edit/(?P<pk>\d+)$', views.ApplicationUpdate.as_view(), name='edit_application'),
+    url(r'^applications/delete/(\d+)$', views.delete_application, name='delete_application'),
     url(r'^users$', views.users, name='users'),
     url(r'^profiles$', views.profiles, name='profiles'),
     url(r'^roles$', views.roles, name='roles'),
@@ -17,4 +21,7 @@ urlpatterns = [
     url(r'^permissions/create$', views.create_permission, name='create_permission'),
     url(r'^permissions/edit/(?P<pk>\d+)$', views.PermissionUpdate.as_view(), name='edit_permission'),
     url(r'^permissions/delete/(\d+)$', views.delete_permission, name='delete_permission'),
+    url(r'^endpoints/login', endpoints.LoginEndpoint.as_view(), name='login_user'),
+    url(r'^endpoints/logout', endpoints.LogoutEndpoint.as_view(), name='logout_user'),
+    url(r'^endpoints/create_user', endpoints.CreateUserEndpoint.as_view(), name='create_user'),
 ]

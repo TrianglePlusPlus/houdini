@@ -8,6 +8,7 @@ if [ "$#" -eq 4 ]; then
 	fi
 	virtualenv $BASE_DIR/virt_env --always-copy
 	source $VIRT_ENV
+	pip3 install --upgrade pip
 	pip3 install -r $BASE_DIR/requirements.txt
 	deactivate
 	sudo -u postgres psql -c "create database $2;"

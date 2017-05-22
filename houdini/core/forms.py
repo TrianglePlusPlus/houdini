@@ -1,15 +1,16 @@
 from django.forms import ModelForm, ValidationError
 
-from .models import Permission, Role
+from .models import Application, Role, Permission
 
 
-class PermissionForm(ModelForm):
+class ApplicationForm(ModelForm):
     class Meta:
-        model = Permission
+        model = Application
+        # TODO: Is this the right fields?
         fields = ('name',)
 
     def __init__(self, *args, **kwargs):
-        super(PermissionForm, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
 
 
@@ -36,3 +37,13 @@ class RoleForm(ModelForm):
         self.fields['parents'].empty_label = '--- None ---'
         self.fields['permissions'].widget.attrs.update({'class': 'form-control'})
         self.fields['permissions'].empty_label = '--- None ---'
+
+
+class PermissionForm(ModelForm):
+    class Meta:
+        model = Permission
+        fields = ('name',)
+
+    def __init__(self, *args, **kwargs):
+        super(PermissionForm, self).__init__(*args, **kwargs)
+        self.fields['name'].widget.attrs.update({'class': 'form-control'})

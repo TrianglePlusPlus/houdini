@@ -13,3 +13,9 @@ class RoleTable(tables.Table):
     class Meta:
         model = Role
         fields = ('name', 'slug', 'parents_names', 'permissions_names', 'id')
+
+
+class ApplicationTable(tables.Table):
+    class Meta:
+        model = Role
+        fields = ('name', 'key', 'secret', 'profiles', 'id')

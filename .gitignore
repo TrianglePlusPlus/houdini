@@ -3,3 +3,4 @@
 virt_env/
 *.pyc
 .DS_Store
+houdini/houdini/config.py
