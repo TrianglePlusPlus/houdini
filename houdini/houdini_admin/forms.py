@@ -1,6 +1,6 @@
 from django.forms import ModelForm, ValidationError
 
-from .models import Application, Role, Permission
+from houdini_server.models import Application, Role, Permission
 
 
 class ApplicationForm(ModelForm):

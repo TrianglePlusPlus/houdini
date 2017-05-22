@@ -1,6 +1,6 @@
 import django_tables2 as tables
 
-from .models import Permission, Role
+from houdini_server.models import Permission, Role
 
 
 class PermissionTable(tables.Table):
@@ -17,5 +17,5 @@ class RoleTable(tables.Table):
 
 class ApplicationTable(tables.Table):
     class Meta:
-        model = Role
+        model = Role # TODO: Application? ...
         fields = ('name', 'key', 'secret', 'profiles', 'id')

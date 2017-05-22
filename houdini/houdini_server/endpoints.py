@@ -8,7 +8,7 @@ import json
 import jwt
 
 from .models import Application, User, RolesToPermissions
-from . import http
+from .http import *
 
 # Endpoints
 
