@@ -1,0 +1,25 @@
+{% extends 'houdini_server/base.html' %}
+{% block content %}
+
+<h3>Activate your account</h3>
+
+<p>Hi!</p>
+
+{% if expired %}
+<form id="request_new_activation_key" action="" method="POST">
+    {% csrf_token %}
+    <input name="key" type="hidden" value="{{ key }}"></input>
+    <p>It looks like your activation key has expired. <a href="" id="request_new_activation_key_submit">Click here</a> to generate a new one.</p>
+</form>
+{% endif %}
+
+<script>
+$(document).ready(function() {
+    $("#request_new_activation_key_submit").click(function() {
+        $("#request_new_activation_key").submit();
+        return false;
+    });
+});
+</script>
+
+{% endblock %}
