@@ -53,8 +53,8 @@ ADMINS = (
 )
 
 
-AUTH_USER_MODEL = 'core.User'
-AUTHENTICATION_BACKENDS = ['core.auth_backend.AuthBackend']
+AUTH_USER_MODEL = 'houdini_server.User'
+AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.AuthBackend']
 # TODO: do we want this?
 # SESSION_SAVE_EVERY_REQUEST = True
 
@@ -67,10 +67,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'core',
-    'client',
-    # TODO: need to rename this boy
-    # 'admin',
+    'houdini_admin',
+    'houdini_server',
+    'houdini_client',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +80,7 @@ MIDDLEWARE = [
     # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'core.middleware.AuthenticationMiddleware'
+    'houdini_client.middleware.AuthenticationMiddleware'
 ]
 
 ROOT_URLCONF = 'houdini.urls'
