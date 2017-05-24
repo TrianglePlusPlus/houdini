@@ -9,12 +9,13 @@ import jwt
 
 from .models import Application, User, RolesToPermissions
 from .http import *
+from .auth_backend import authenticate as server_authenticate
 
 # Endpoints
 
 # login
-# logout
 # create user
+# activate user
 # change password
 # reset password
 # add role          ?
@@ -86,9 +87,9 @@ class LoginEndpoint(Endpoint):
             return error_response
         email = self.data['email']
         password = self.data['password']
-        user = authenticate(email=email, password=password)
+        user = server_authenticate(email=email, password=password)
         if user is None:
-            return HttpResponseUnauthorized('Invalid user/password combination')
+            return HttpResponseUnauthorized(reason='Invalid user/password combination')
             # TODO: or user could just be inactive. do we need to be more specific?
 
         # Get all of the roles for the profiles they are logging in as
@@ -106,19 +107,6 @@ class LoginEndpoint(Endpoint):
         response_data['roles'] = [role.name for role in relevant_roles]
         response_data['roles'] += [role.slug for role in relevant_roles]
         response_jwt = jwt.encode(response_data, self.app.secret)
-        return HttpResponse(response_jwt)
-
-
-class LogoutEndpoint(Endpoint):
-    def post(self, request):
-        error_response = self.validate_request()
-        if not self.is_valid_request:
-            return error_response
-        # TODO: logout the user
-        #       maybe call logout(request, user)
-        # TODO: return a HttpReponse i guess, with status code? or JWT
-        #       depending on the success/failure of the logout
-        response_jwt = jwt.encode({}, self.app.secret)
         return HttpResponse(response_jwt)
 
 
