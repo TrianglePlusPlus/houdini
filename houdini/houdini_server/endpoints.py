@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 import json
 import jwt
@@ -142,3 +143,60 @@ class CreateUserEndpoint(Endpoint):
         # response_jwt = jwt.encode(response_data, self.app.secret)
         # return HttpResponse(response_jwt)
         return HttpResponseCreated()
+
+
+class ActivateUserEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['activation_key']
+
+        try:
+            user = User.objects.get(activation_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid activation key")
+
+        if user.is_active:
+            # status code 200; it's not a failure
+            return HttpResponse("User already activated")
+
+        if user.key_expires < timezone.now():
+            # status code 403
+            return HttpResponseForbidden("Activation key has expired")
+
+        # the activation key was valid, the user is currently inactive, and the key hasn't expired!
+        user.is_active=True
+        user.save()
+        # status code 200
+        return HttpResponse("User successfully activated!")
+
+
+class RegenerateActivationKeyEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['activation_key']
+
+        try:
+            user = User.objects.get(activation_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid activation key")
+
+        if user.is_active:
+            # status code 200; it's not a failure
+            return HttpResponse("User already activated")
+
+        # We don't care if the activation key has not expired, we will just regenerate
+        # a new one if they mistakenly ask
+
+        # the activation key was valid, the user is currently inactive, and the key has expired!
+        user.regenerate_activation_key()
+        user.save()
+        # status code 200
+        return HttpResponse("Check your email for a new activation link.")

@@ -31,10 +31,11 @@ def login(request):
             auth_login(request, user)
 
             if r.get('http_response') is not None:
-                # save the roles and permissions in the session
+                # decode the JWT received in the HTTP reponse which contains roles/permissions
                 data = Endpoint.authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
                 # TODO: check if data == None?
                 # TODO: convert roles and permissions to sets?
+                # save the roles and permissions in the session
                 request.session["roles"] = data["roles"]
                 request.session["permissions"] = data["permissions"]
                 request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -109,39 +110,40 @@ def register(request):
 def activate(request, key):
     expired = False
     if request.method == "POST":
-        try:
-            user = User.objects.get(activation_key=request.POST.get('key'))
-            if user.key_expires < timezone.now():
-                if not user.is_active:
-                    user.regenerate_activation_key()
-                    user.save()
-                    expired = False
-                    messages.success(request, "Check your email for a new activation link.")
-                else:
-                    messages.error(request, "User already activated")
-            # TODO: else?
-        except User.DoesNotExist:
-            messages.error(request, "Invalid activation key")
-    else:
-        try:
-            user = User.objects.get(activation_key=key)
-            if user.key_expires > timezone.now():
-                if not user.is_active:
-                    user.is_active=True
-                    user.save()
-                    messages.success(request, "User successfully activated!")
-                else:
-                    messages.error(request, "User already activated")
-            else:
-                if not user.is_active:
-                    messages.error(request, "Activation key has expired")
-                    # so we can offer to generate them a new activation key
-                    expired = True
-                else:
-                    messages.error(request, "User already activated")
+        # make a JWT jwt_string of the key signed with app_secret
+        jwt_string = jwt.encode({
+            "activation_key": key
+        }, settings.HOUDINI_SECRET)
 
-        except User.DoesNotExist:
-            messages.error(request, "Invalid activation key")
+        # POST it to the activate endpoint
+        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/regenerate_activation_key", data={
+            "app_key": settings.HOUDINI_KEY,
+            "jwt_string": jwt_string
+        })
+
+        if r.status_code == 200:
+            messages.success(request, r.text)
+        else:
+            messages.error(request, r.text)
+    else:
+        # make a JWT jwt_string of the key signed with app_secret
+        jwt_string = jwt.encode({
+            "activation_key": key
+        }, settings.HOUDINI_SECRET)
+
+        # POST it to the activate endpoint
+        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/activate_user", data={
+            "app_key": settings.HOUDINI_KEY,
+            "jwt_string": jwt_string
+        })
+
+        if r.status_code == 200:
+            messages.success(request, r.text)
+        elif r.status_code == 403:
+            expired = True
+            messages.error(request, r.text)
+        else:
+            messages.error(request, r.text)
 
     return render(request, "houdini_client/activation.html", {'expired': expired, 'key': key})
 

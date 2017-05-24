@@ -3,6 +3,20 @@ from django.http import HttpResponse
 # Helper functions and classes
 
 
+class HttpResponseBadRequest(HttpResponse):
+    """
+    HTTP 400 response
+    Used when the server cannot or will not process the request
+    due to an apparent client error
+    """
+
+    def __init__(self, reason=None):
+        if reason is None:
+            super().__init__('400 Bad Request', status=400)
+        else:
+            super().__init__('400 Bad Request: ' + reason, status=400)
+
+
 class HttpResponseUnauthorized(HttpResponse):
     """
     HTTP 401 response
@@ -14,6 +28,20 @@ class HttpResponseUnauthorized(HttpResponse):
             super().__init__('401 Unauthorized', status=401)
         else:
             super().__init__('401 Unauthorized: ' + reason, status=401)
+
+
+class HttpResponseForbidden(HttpResponse):
+    """
+    HTTP 403 response
+    Used when the request was valid, but the server is refusing action.
+    The user might not have the necessary permissions for a resource.
+    """
+
+    def __init__(self, reason=None):
+        if reason is None:
+            super().__init__('403 Forbidden', status=403)
+        else:
+            super().__init__('403 Forbidden: ' + reason, status=403)
 
 
 class HttpResponseConflict(HttpResponse):

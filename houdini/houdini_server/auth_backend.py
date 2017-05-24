@@ -10,7 +10,9 @@ from .models import User
 def authenticate(email=None, password=None):
     try:
         user = User.objects.get(email=email)
-        if user.check_password(password):
+        if user.check_password(password) and user.is_active:
             return user
+        else:
+            return None
     except User.DoesNotExist:
         return None

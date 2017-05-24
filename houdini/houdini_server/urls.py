@@ -7,4 +7,6 @@ from . import endpoints
 urlpatterns = [
     url(r'^endpoints/login', endpoints.LoginEndpoint.as_view(), name='login_user'),
     url(r'^endpoints/create_user', endpoints.CreateUserEndpoint.as_view(), name='create_user'),
+    url(r'^endpoints/activate_user', endpoints.ActivateUserEndpoint.as_view(), name='activate_user'),
+    url(r'^endpoints/regenerate_activation_key', endpoints.RegenerateActivationKeyEndpoint.as_view(), name='regenerate_activation_key'),
 ]
