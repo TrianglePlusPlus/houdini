@@ -53,7 +53,7 @@ ADMINS = (
 )
 
 
-AUTH_USER_MODEL = 'houdini_server.User'
+AUTH_USER_MODEL = 'houdini_admin.User'
 AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.AuthBackend']
 # TODO: do we want this?
 # SESSION_SAVE_EVERY_REQUEST = True

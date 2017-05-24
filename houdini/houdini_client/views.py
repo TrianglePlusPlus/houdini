@@ -2,66 +2,66 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import get_user
+from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.utils import timezone
 
-# TODO: make sure all datetimes are offset aware?
 from datetime import datetime
 import jwt
 import requests
 import urllib.parse
 
 from houdini_server.endpoints import Endpoint
-from houdini_server.models import User
 from .forms import LoginForm, RegisterForm
+from .auth_backend import FailureType
+
+User = get_user_model()
 
 def login(request):
     if request.method == "POST":
-        # make a JWT jwt_string of data signed with app_secret
-        jwt_string = jwt.encode({
-            "email": request.POST.get("email"),
-            "password": request.POST.get("password")
-        }, settings.HOUDINI_SECRET)
-
-        # POST it to the login endpoint
-        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/login", data={
-            "app_key": settings.HOUDINI_KEY,
-            "jwt_string": jwt_string
-        })
-
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+        r = {}
+        user = authenticate(email=email, password=password, response=r)
         # if we were successfully logged in
-        if r.status_code == 200:
+        if user:
             messages.success(request, "Successfully logged in")
 
-            # TODO: needs to become admin.models.User
-            user = User.objects.get(email=request.POST.get("email"))
-            if user is None:
-                # TODO: in this case, i.e. where you authenticate successfully against the auth server
-                #       but not locally, we might want to suggest that the user create a local account
-                #       that will link up with the existing auth server account (how would we do this?)
-                # TODO: i also think i need to include houdini_server.http
-                return HttpResponseUnauthorized('Invalid user/password combination')
             auth_login(request, user)
 
-            # assign r.roles and r.permissions to session variables
-            data = Endpoint.authenticate_jwt(r.text, settings.HOUDINI_SECRET)
-            # TODO: check if data == None?
-            # TODO: convert roles and permissions to sets?
-            request.session["roles"] = data["roles"]
-            request.session["permissions"] = data["permissions"]
-            # at login page, save session variables of loggedin_since, & roles+permissions as a set
-            request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-            # then redirect to the "next" page (which will hit @login_required again)
-            return redirect(request.GET.get("next", "index"))
+            if r.get('http_response') is not None:
+                # save the roles and permissions in the session
+                data = Endpoint.authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
+                # TODO: check if data == None?
+                # TODO: convert roles and permissions to sets?
+                request.session["roles"] = data["roles"]
+                request.session["permissions"] = data["permissions"]
+                request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                # then redirect to the "next" page (which will hit @login_required again)
+                return redirect(request.GET.get("next", "index"))
+            else:
+                # TODO: handle an error
+                pass
+        # otherwise, response will have been filled in with what went wrong
         else:
-            # TODO: use messages to be more specific on other status codes
-            messages.error(request, r.text)
+            if r.get('failure_type') == FailureType.local_failure:
+                # TODO: in this case, i.e. where you authenticate successfully against the auth server
+                #       but not locally, we might want to suggest that the user create a local account
+                #       that will link up with the existing auth server account and redirect to a view
+                # TODO: i also think i need to include houdini_server.http
+                return HttpResponseUnauthorized('Invalid user/password combination')
+            elif r.get('failure_type') == FailureType.server_failure:
+                if r.get('http_response') is not None:
+                    messages.error(request, r['http_response'].text)
+                else:
+                    messages.error(request, "Authentication Server Error")
 
-            response = redirect("login")
-            response['Location'] += '?' + urllib.parse.urlencode({'next': request.GET.get("next", "index")})
-            return response
+                response = redirect("login")
+                response['Location'] += '?' + urllib.parse.urlencode({'next': request.GET.get("next", "index")})
+                return response
+            else:
+                messages.error(request, "Invalid login.")
     else:
         form = LoginForm()
         return render(request, "houdini_client/login.html", {'form': form})
@@ -87,12 +87,17 @@ def register(request):
 
             # if user was successfully created
             if r.status_code == 201:
-                # TODO: check content of response? assign anything to session?
-                # TODO: redirect to a "registration successful view"?
+                # create a local user
+                user = User.objects.create_user(
+                    form.cleaned_data.get("email"),
+                    first_name=form.cleaned_data.get("first_name"),
+                    last_name=form.cleaned_data.get("last_name")
+                )
+                user.save()
+
                 messages.success(request, "User successfully created! Check your email for an activation link.")
                 return redirect("index")
             else:
-                # TODO: use messages to be more specific on other status codes
                 messages.error(request, r.text)
                 return render(request, "houdini_client/register.html", {'form': form})
         else:
@@ -141,33 +146,13 @@ def activate(request, key):
     return render(request, "houdini_client/activation.html", {'expired': expired, 'key': key})
 
 def logout(request):
-    # make a JWT jwt_string of data signed with app_secret
-    jwt_string = jwt.encode({
-        "email": request.POST.get("email"),
-    }, settings.HOUDINI_SECRET)
+    messages.success(request, "Successfully logged out")
 
-    # POST it to the logout endpoint
-    r = requests.post(settings.HOUDINI_SERVER + "/endpoints/logout", data={
-        "app_key": settings.HOUDINI_KEY,
-        "jwt_string": jwt_string
-    })
+    auth_logout(request)
 
-    # if we were successfully logged out
-    if r.status_code == 200:
-        messages.success(request, "Successfully logged out")
-
-        auth_logout(request)
-
-        data = Endpoint.authenticate_jwt(r.text, settings.HOUDINI_SECRET)
-        # TODO: ?
-        request.session["roles"] = []
-        request.session["permissions"] = []
-        request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
-        # then redirect to the home page
-        return redirect('index')
-    else:
-        # TODO: will a logout ever actually fail? do we even need to hit the server?
-        # TODO: use messages to be more specific on other status codes
-        messages.error(request, r.text)
-
-        return redirect('index')
+    # TODO: ?
+    request.session["roles"] = []
+    request.session["permissions"] = []
+    request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
+    # then redirect to the home page
+    return redirect('index')

@@ -233,12 +233,6 @@ class User(AbstractBaseUser):
         self.generate_activation_key()
         self.send_activation_email(resend=True)
 
-    def is_logged_in(self, request):
-        if request.session.get('logged_in_since'):
-            return (datetime.now() - datetime.strptime(request.session['logged_in_since'], "%Y-%m-%dT%H:%M:%S")) < settings.TIME_TO_LIVE
-        else:
-            return False
-
     @property
     def is_authenticated(self):
         return True
