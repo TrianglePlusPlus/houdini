@@ -30,6 +30,7 @@ HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
 TIME_TO_LIVE = timedelta(minutes=1) # TODO: change back to something longer
 ACCOUNT_ACTIVATION_TIME = timedelta(minutes=1) # TODO: change back to days=1
+PASSWORD_RESET_TIME = timedelta(minutes=1) # TODO: change back to days=1
 
 # Email
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'

@@ -9,4 +9,6 @@ urlpatterns = [
     url(r'^endpoints/activate_user', endpoints.ActivateUserEndpoint.as_view(), name='activate_user_endpoint'),
     url(r'^endpoints/regenerate_activation_key', endpoints.RegenerateActivationKeyEndpoint.as_view(), name='regenerate_activation_key_endpoint'),
     url(r'^endpoints/password_change', endpoints.PasswordChangeEndpoint.as_view(), name='password_change_endpoint'),
+    url(r'^endpoints/password_reset', endpoints.PasswordResetEndpoint.as_view(), name='password_reset_endpoint'),
+    url(r'^endpoints/password_set', endpoints.PasswordSetEndpoint.as_view(), name='password_set_endpoint'),
 ]

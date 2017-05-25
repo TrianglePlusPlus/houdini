@@ -42,3 +42,20 @@ class PasswordChangeForm(forms.Form):
             raise forms.ValidationError("Passwords don't match")
 
         return self.cleaned_data
+
+
+class PasswordResetForm(forms.Form):
+    email = forms.CharField(label='email', max_length=100, widget=forms.EmailInput())
+
+
+class PasswordSetForm(forms.Form):
+    new_password = forms.CharField(label='new password', max_length=100, widget=forms.PasswordInput())
+    confirm_new_password = forms.CharField(label='confirm new password', max_length=100, widget=forms.PasswordInput())
+
+    def clean(self):
+        new_password = self.cleaned_data.get('new_password')
+        confirm_new_password = self.cleaned_data.get('confirm_new_password')
+        if new_password and new_password != confirm_new_password:
+            raise forms.ValidationError("Passwords don't match")
+
+        return self.cleaned_data

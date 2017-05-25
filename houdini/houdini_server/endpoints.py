@@ -163,7 +163,7 @@ class ActivateUserEndpoint(Endpoint):
             # status code 200; it's not a failure
             return HttpResponse("User already activated")
 
-        if user.key_expires < timezone.now():
+        if user.activation_key_expires < timezone.now():
             # status code 403
             return HttpResponseForbidden("Activation key has expired")
 
@@ -220,3 +220,59 @@ class PasswordChangeEndpoint(Endpoint):
         user.save()
         # status code 200
         return HttpResponse("Password successfully changed")
+
+
+class PasswordResetEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data['email']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid email")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        # send an email with a link to reset their password
+        user.generate_password_reset_key()
+        user.send_password_reset_email()
+        user.save()
+        # status code 200
+        return HttpResponse("Check your email for a link to reset your password.")
+
+
+class PasswordSetEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['password_reset_key']
+        new_password = self.data['new_password']
+
+        try:
+            user = User.objects.get(password_reset_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid password reset link")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        if user.password_key_expires < timezone.now():
+            # status code 403
+            return HttpResponseForbidden("Password reset link has expired")
+
+        # the password reset key was valid, the user is currently active, and the key hasn't expired!
+        user.set_password(new_password)
+        user.save()
+        # status code 200
+        return HttpResponse("Your password has been changed")

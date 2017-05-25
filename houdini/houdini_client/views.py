@@ -14,7 +14,7 @@ import urllib.parse
 
 from houdini_server.endpoints import Endpoint
 from .decorators import login_required
-from .forms import LoginForm, RegisterForm, PasswordChangeForm
+from .forms import LoginForm, RegisterForm, PasswordChangeForm, PasswordResetForm, PasswordSetForm
 from .auth_backend import FailureType
 
 User = get_user_model()
@@ -113,7 +113,7 @@ def activate(request, key):
     if request.method == "POST":
         # make a JWT jwt_string of the key signed with app_secret
         jwt_string = jwt.encode({
-            "activation_key": key
+            "activation_key": key # TODO: request.POST.get('key')?
         }, settings.HOUDINI_SECRET)
 
         # POST it to the activate endpoint
@@ -160,9 +160,6 @@ def logout(request):
     # then redirect to the home page
     return redirect('index')
 
-def password_reset(request):
-    pass
-
 @login_required
 def password_change(request):
     if request.method == "POST":
@@ -193,3 +190,55 @@ def password_change(request):
         form = PasswordChangeForm()
 
     return render(request, "houdini_client/password_change.html", {'form': form})
+
+def password_reset(request):
+    if request.method == "POST":
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of the key signed with app_secret
+            jwt_string = jwt.encode({
+                "email": request.POST.get('email'),
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_reset endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_reset", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            if r.status_code == 200:
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+
+            form = PasswordResetForm()
+    else:
+        form = PasswordResetForm()
+
+    return render(request, "houdini_client/password_reset.html", {'form': form})
+
+# very similar to password_change
+def password_set(request, key):
+    if request.method == "POST":
+        form = PasswordSetForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of the key signed with app_secret
+            jwt_string = jwt.encode({
+                "password_reset_key": key, # TODO: request.POST.get('key') ?
+                "new_password": request.POST.get('new_password')
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_set endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_set", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            if r.status_code == 200:
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+    else:
+        form = PasswordSetForm()
+
+    return render(request, "houdini_client/password_set.html", {'key': key, 'form': form})
