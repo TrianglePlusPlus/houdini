@@ -200,3 +200,23 @@ class RegenerateActivationKeyEndpoint(Endpoint):
         user.save()
         # status code 200
         return HttpResponse("Check your email for a new activation link.")
+
+
+class PasswordChangeEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data['email']
+        password = self.data['password']
+        new_password = self.data['new_password']
+
+        user = server_authenticate(email=email, password=password)
+        if user is None:
+            # status code 401
+            return HttpResponseUnauthorized(reason="Old password was incorrect")
+
+        user.set_password(new_password)
+        user.save()
+        # status code 200
+        return HttpResponse("Password successfully changed")

@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.utils import timezone
@@ -13,7 +13,8 @@ import requests
 import urllib.parse
 
 from houdini_server.endpoints import Endpoint
-from .forms import LoginForm, RegisterForm
+from .decorators import login_required
+from .forms import LoginForm, RegisterForm, PasswordChangeForm
 from .auth_backend import FailureType
 
 User = get_user_model()
@@ -158,3 +159,37 @@ def logout(request):
     request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
     # then redirect to the home page
     return redirect('index')
+
+def password_reset(request):
+    pass
+
+@login_required
+def password_change(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of data signed with app_secret
+            jwt_string = jwt.encode({
+                "email": request.user.email,
+                "password": form.cleaned_data.get("password"),
+                "new_password": form.cleaned_data.get("new_password"),
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_change endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_change", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            # if user was successfully created
+            if r.status_code == 200:
+                # Updating the password logs out all other sessions for the user
+                # except the current one.
+                update_session_auth_hash(request, request.user)
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+    else:
+        form = PasswordChangeForm()
+
+    return render(request, "houdini_client/password_change.html", {'form': form})
