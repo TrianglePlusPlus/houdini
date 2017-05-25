@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
+from django.utils import timezone
 
 import json
 import jwt
@@ -142,3 +143,136 @@ class CreateUserEndpoint(Endpoint):
         # response_jwt = jwt.encode(response_data, self.app.secret)
         # return HttpResponse(response_jwt)
         return HttpResponseCreated()
+
+
+class ActivateUserEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['activation_key']
+
+        try:
+            user = User.objects.get(activation_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid activation key")
+
+        if user.is_active:
+            # status code 200; it's not a failure
+            return HttpResponse("User already activated")
+
+        if user.activation_key_expires < timezone.now():
+            # status code 403
+            return HttpResponseForbidden("Activation key has expired")
+
+        # the activation key was valid, the user is currently inactive, and the key hasn't expired!
+        user.is_active=True
+        user.save()
+        # status code 200
+        return HttpResponse("User successfully activated!")
+
+
+class RegenerateActivationKeyEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['activation_key']
+
+        try:
+            user = User.objects.get(activation_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid activation key")
+
+        if user.is_active:
+            # status code 200; it's not a failure
+            return HttpResponse("User already activated")
+
+        # We don't care if the activation key has not expired, we will just regenerate
+        # a new one if they mistakenly ask
+
+        # the activation key was valid, the user is currently inactive, and the key has expired!
+        user.regenerate_activation_key()
+        user.save()
+        # status code 200
+        return HttpResponse("Check your email for a new activation link.")
+
+
+class PasswordChangeEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data['email']
+        password = self.data['password']
+        new_password = self.data['new_password']
+
+        user = server_authenticate(email=email, password=password)
+        if user is None:
+            # status code 401
+            return HttpResponseUnauthorized(reason="Old password was incorrect")
+
+        user.set_password(new_password)
+        user.save()
+        # status code 200
+        return HttpResponse("Password successfully changed")
+
+
+class PasswordResetEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data['email']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid email")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        # send an email with a link to reset their password
+        user.generate_password_reset_key()
+        user.send_password_reset_email()
+        user.save()
+        # status code 200
+        return HttpResponse("Check your email for a link to reset your password.")
+
+
+class PasswordSetEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        key = self.data['password_reset_key']
+        new_password = self.data['new_password']
+
+        try:
+            user = User.objects.get(password_reset_key=key)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid password reset link")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        if user.password_key_expires < timezone.now():
+            # status code 403
+            return HttpResponseForbidden("Password reset link has expired")
+
+        # the password reset key was valid, the user is currently active, and the key hasn't expired!
+        user.set_password(new_password)
+        user.save()
+        # status code 200
+        return HttpResponse("Your password has been changed")

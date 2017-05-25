@@ -200,7 +200,9 @@ class User(AbstractBaseUser):
     email = models.EmailField(max_length=100, unique=True)
     is_active = models.BooleanField(default=False)
     activation_key = models.CharField(max_length=40)
-    key_expires = models.DateTimeField()
+    activation_key_expires = models.DateTimeField()
+    password_reset_key = models.CharField(max_length=40, null=True)
+    password_key_expires = models.DateTimeField(null=True)
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = 'email'
@@ -211,10 +213,10 @@ class User(AbstractBaseUser):
 
     def generate_activation_key(self):
         self.activation_key = uuid.uuid4().hex
-        self.key_expires = timezone.now() + settings.ACCOUNT_ACTIVATION_TIME
+        self.activation_key_expires = timezone.now() + settings.ACCOUNT_ACTIVATION_TIME
 
     def send_activation_email(self, resend=False):
-        activation_link = settings.BUILD_ABSOLUTE_URL(reverse("activate", kwargs={'key':self.activation_key}))
+        activation_link = settings.BUILD_ABSOLUTE_URL(reverse("activate", kwargs={'key': self.activation_key}))
         if resend:
             message = "Hello " + str(self) + "! Your old activation key expired so we have generated a new one for you. Go to this link to activate your account: " + activation_link
         else:
@@ -232,6 +234,21 @@ class User(AbstractBaseUser):
     def regenerate_activation_key(self):
         self.generate_activation_key()
         self.send_activation_email(resend=True)
+
+    def generate_password_reset_key(self):
+        self.password_reset_key = uuid.uuid4().hex
+        self.password_key_expires = timezone.now() + settings.PASSWORD_RESET_TIME
+
+    def send_password_reset_email(self):
+        password_reset_link = settings.BUILD_ABSOLUTE_URL(reverse("password_set", kwargs={'key': self.password_reset_key}))
+        message = "Hello " + str(self) + "! To reset your password, visit this link: " + password_reset_link
+        send_mail(
+            "Reset your password",
+            message,
+            settings.EMAIL_HOST_USER,
+            [self.email],
+            fail_silently=False
+        )
 
     @property
     def is_authenticated(self):

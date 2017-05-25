@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import authenticate, get_user_model, update_session_auth_hash
 from django.contrib.auth import login as auth_login
 from django.contrib.auth import logout as auth_logout
 from django.utils import timezone
@@ -13,7 +13,8 @@ import requests
 import urllib.parse
 
 from houdini_server.endpoints import Endpoint
-from .forms import LoginForm, RegisterForm
+from .decorators import login_required
+from .forms import LoginForm, RegisterForm, PasswordChangeForm, PasswordResetForm, PasswordSetForm
 from .auth_backend import FailureType
 
 User = get_user_model()
@@ -31,10 +32,11 @@ def login(request):
             auth_login(request, user)
 
             if r.get('http_response') is not None:
-                # save the roles and permissions in the session
+                # decode the JWT received in the HTTP reponse which contains roles/permissions
                 data = Endpoint.authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
                 # TODO: check if data == None?
                 # TODO: convert roles and permissions to sets?
+                # save the roles and permissions in the session
                 request.session["roles"] = data["roles"]
                 request.session["permissions"] = data["permissions"]
                 request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
@@ -109,39 +111,40 @@ def register(request):
 def activate(request, key):
     expired = False
     if request.method == "POST":
-        try:
-            user = User.objects.get(activation_key=request.POST.get('key'))
-            if user.key_expires < timezone.now():
-                if not user.is_active:
-                    user.regenerate_activation_key()
-                    user.save()
-                    expired = False
-                    messages.success(request, "Check your email for a new activation link.")
-                else:
-                    messages.error(request, "User already activated")
-            # TODO: else?
-        except User.DoesNotExist:
-            messages.error(request, "Invalid activation key")
-    else:
-        try:
-            user = User.objects.get(activation_key=key)
-            if user.key_expires > timezone.now():
-                if not user.is_active:
-                    user.is_active=True
-                    user.save()
-                    messages.success(request, "User successfully activated!")
-                else:
-                    messages.error(request, "User already activated")
-            else:
-                if not user.is_active:
-                    messages.error(request, "Activation key has expired")
-                    # so we can offer to generate them a new activation key
-                    expired = True
-                else:
-                    messages.error(request, "User already activated")
+        # make a JWT jwt_string of the key signed with app_secret
+        jwt_string = jwt.encode({
+            "activation_key": key # TODO: request.POST.get('key')?
+        }, settings.HOUDINI_SECRET)
 
-        except User.DoesNotExist:
-            messages.error(request, "Invalid activation key")
+        # POST it to the activate endpoint
+        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/regenerate_activation_key", data={
+            "app_key": settings.HOUDINI_KEY,
+            "jwt_string": jwt_string
+        })
+
+        if r.status_code == 200:
+            messages.success(request, r.text)
+        else:
+            messages.error(request, r.text)
+    else:
+        # make a JWT jwt_string of the key signed with app_secret
+        jwt_string = jwt.encode({
+            "activation_key": key
+        }, settings.HOUDINI_SECRET)
+
+        # POST it to the activate endpoint
+        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/activate_user", data={
+            "app_key": settings.HOUDINI_KEY,
+            "jwt_string": jwt_string
+        })
+
+        if r.status_code == 200:
+            messages.success(request, r.text)
+        elif r.status_code == 403:
+            expired = True
+            messages.error(request, r.text)
+        else:
+            messages.error(request, r.text)
 
     return render(request, "houdini_client/activation.html", {'expired': expired, 'key': key})
 
@@ -156,3 +159,86 @@ def logout(request):
     request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
     # then redirect to the home page
     return redirect('index')
+
+@login_required
+def password_change(request):
+    if request.method == "POST":
+        form = PasswordChangeForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of data signed with app_secret
+            jwt_string = jwt.encode({
+                "email": request.user.email,
+                "password": form.cleaned_data.get("password"),
+                "new_password": form.cleaned_data.get("new_password"),
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_change endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_change", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            # if user was successfully created
+            if r.status_code == 200:
+                # Updating the password logs out all other sessions for the user
+                # except the current one.
+                update_session_auth_hash(request, request.user)
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+    else:
+        form = PasswordChangeForm()
+
+    return render(request, "houdini_client/password_change.html", {'form': form})
+
+def password_reset(request):
+    if request.method == "POST":
+        form = PasswordResetForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of the key signed with app_secret
+            jwt_string = jwt.encode({
+                "email": request.POST.get('email'),
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_reset endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_reset", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            if r.status_code == 200:
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+
+            form = PasswordResetForm()
+    else:
+        form = PasswordResetForm()
+
+    return render(request, "houdini_client/password_reset.html", {'form': form})
+
+# very similar to password_change
+def password_set(request, key):
+    if request.method == "POST":
+        form = PasswordSetForm(request.POST)
+        if form.is_valid():
+            # make a JWT jwt_string of the key signed with app_secret
+            jwt_string = jwt.encode({
+                "password_reset_key": key, # TODO: request.POST.get('key') ?
+                "new_password": request.POST.get('new_password')
+            }, settings.HOUDINI_SECRET)
+
+            # POST it to the password_set endpoint
+            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_set", data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
+            })
+
+            if r.status_code == 200:
+                messages.success(request, r.text)
+            else:
+                messages.error(request, r.text)
+    else:
+        form = PasswordSetForm()
+
+    return render(request, "houdini_client/password_set.html", {'key': key, 'form': form})
