@@ -254,6 +254,10 @@ class User(AbstractBaseUser):
     def is_authenticated(self):
         return True
 
+    @property
+    def name(self):
+        return str(self)
+
     def __str__(self):
         return self.first_name + ' ' + self.last_name
 

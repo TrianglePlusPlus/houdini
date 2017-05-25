@@ -6,10 +6,10 @@ from django.shortcuts import redirect, render
 from django.views.generic.edit import UpdateView
 from django.contrib import messages
 
-from houdini_server.models import Application, Role, Permission
+from houdini_server.models import Application, User, Role, Permission
 from houdini_client.decorators import login_required, role_required, permission_required
 from .forms import ApplicationForm, RoleForm, PermissionForm
-from .tables import ApplicationTable, RoleTable, PermissionTable
+from .tables import ApplicationTable, UserTable, RoleTable, PermissionTable
 from .utils import JsonResponse
 
 
@@ -28,6 +28,10 @@ def index(request):
     # ceo.save()
     # return JsonResponse(Role.get_json())
     return render(request, 'houdini_admin/index.html')
+
+
+def hierarchy(request):
+    return render(request, 'houdini_admin/hierarchy.html')
 
 
 def applications(request):
@@ -82,16 +86,17 @@ def delete_application(request, application_id):
     return redirect('applications')
 
 
-def hierarchy(request):
-    return render(request, 'houdini_admin/hierarchy.html')
-
-
 def users(request):
-    return render(request, 'houdini_admin/users.html')
+    table = UserTable(User.objects.order_by('date_joined').all())
+    table.paginate(page=request.GET.get('page', 1), per_page=2)
+    return render(request, 'houdini_admin/table.html', {
+        'name': 'user',
+        'table': table
+    })
 
 
-def profiles(request):
-    return render(request, 'houdini_admin/profiles.html')
+# def profiles(request):
+#     return render(request, 'houdini_admin/profiles.html')
 
 
 def roles(request):
@@ -153,20 +158,6 @@ def permissions(request):
         'name': 'permission',
         'table': table
     })
-    # permission_list = Permission.objects.order_by('name').all()
-    # paginator = Paginator(permission_list, 25)
-
-    # page = request.GET.get('page')
-    # try:
-    #     permissions = paginator.page(page)
-    # except PageNotAnInteger:
-    #     permissions = paginator.page(1)
-    # except EmptyPage:
-    #     permissions = paginator.page(paginator.num_pages)
-
-    # return render(request, 'houdini_admin/permissions.html', {
-    #     'permissions': permissions
-    # })
 
 
 def create_permission(request):
