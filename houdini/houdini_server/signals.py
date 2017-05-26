@@ -10,8 +10,8 @@ def role_m2m_changed(sender, **kwargs):
 def role_post_delete(sender, **kwargs):
     RolesToPermissions.refresh_table()
 
-@receiver(m2m_changed, sender="houdini_server.Permission")
-def post_save(sender, **kwargs):
+@receiver(post_save, sender="houdini_server.Permission")
+def permission_post_save(sender, **kwargs):
     RolesToPermissions.refresh_table()
 
 @receiver(post_delete, sender="houdini_server.Permission")

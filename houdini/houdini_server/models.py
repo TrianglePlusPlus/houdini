@@ -122,8 +122,12 @@ class Role(models.Model):
         super().save(*args, **kwargs)
 
     @property
-    def permissions_names(self):
+    def own_permissions_names(self):
         return ', '.join((permission.name for permission in self.permissions.all()))
+
+    @property
+    def parents_permissions_names(self):
+        return ', '.join((permission.name for permission in self.get_parent_permissions()))
 
     def get_permission_slugs_for_role(self):
         """
@@ -138,17 +142,22 @@ class Role(models.Model):
     def get_parent_slugs_for_role(self):
         return [parent.slug for parent in self.parents]
 
-    def get_all_permissions(self):
-        permissions = set(self.permissions.all())
+    def get_parent_permissions(self):
+        parent_permissions = set()
         search_queue = Queue()
         for parent in self.parents.all():
             search_queue.put(parent)
         while not search_queue.empty():
             role = search_queue.get()
             for permission in role.permissions.all():
-                permissions.add(permission)
+                parent_permissions.add(permission)
             for parent in role.parents.all():
                 search_queue.put(parent)
+        return parent_permissions
+
+    def get_all_permissions(self):
+        permissions = set(self.permissions.all())
+        permissions |= self.get_parent_permissions()
         return permissions
 
     def __str__(self):
