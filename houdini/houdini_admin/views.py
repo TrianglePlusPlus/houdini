@@ -236,7 +236,7 @@ def login_test(request):
 def role_test(request):
     return render(request, "houdini_admin/role_test.html")
 
-@permission_required('permission 2')
+@permission_required('even new one')
 def permission_test(request):
     return render(request, "houdini_admin/permission_test.html")
 

@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'houdini_admin',
-    'houdini_server',
+    # We import the AppConfig so that it can set up its signals
+    'houdini_server.apps.HoudiniServerConfig',
     'houdini_client',
 ]
 
