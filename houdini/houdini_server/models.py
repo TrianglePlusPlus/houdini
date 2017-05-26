@@ -19,6 +19,10 @@ class Application(models.Model):
 
     roles = models.ManyToManyField("Role")
 
+    @property
+    def roles_names(self):
+        return ', '.join((role.name for role in self.roles.all()))
+
     @classmethod
     def create(cls, name):
         application = cls(name=name)
@@ -136,7 +140,9 @@ class Role(models.Model):
 
     def get_all_permissions(self):
         permissions = set(self.permissions.all())
-        search_queue = Queue((parent for parent in self.parents.all()))
+        search_queue = Queue()
+        for parent in self.parents.all():
+            search_queue.put(parent)
         while not search_queue.empty():
             role = search_queue.get()
             for permission in role.permissions.all():
@@ -207,9 +213,13 @@ class User(AbstractBaseUser):
 
     USERNAME_FIELD = 'email'
 
+    objects = HoudiniUserManager()
+
     roles = models.ManyToManyField("Role")
 
-    objects = HoudiniUserManager()
+    @property
+    def roles_names(self):
+        return ', '.join((role.name for role in self.roles.all()))
 
     def generate_activation_key(self):
         self.activation_key = uuid.uuid4().hex

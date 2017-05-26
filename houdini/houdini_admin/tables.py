@@ -18,10 +18,10 @@ class RoleTable(tables.Table):
 class ApplicationTable(tables.Table):
     class Meta:
         model = Application
-        fields = ('name', 'key', 'secret', 'roles', 'id')
+        fields = ('name', 'key', 'secret', 'roles_names', 'id')
 
 
 class UserTable(tables.Table):
     class Meta:
         model = User
-        fields = ('name', 'email', 'is_active', 'roles', 'date_joined', 'id')
+        fields = ('name', 'email', 'is_active', 'roles_names', 'date_joined', 'id')

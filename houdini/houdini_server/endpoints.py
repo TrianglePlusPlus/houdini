@@ -20,7 +20,8 @@ from .auth_backend import authenticate as server_authenticate
 # change password
 # reset password
 # add role          ?
-# delete role       ?
+# remove role       ?
+# update user       ?
 
 class Endpoint(View):
     def __init__(self, **kwargs):

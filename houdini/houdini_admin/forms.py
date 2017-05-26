@@ -1,23 +1,24 @@
 from django.forms import ModelForm, ValidationError
 
-from houdini_server.models import Application, Role, Permission
+from houdini_server.models import Application, Role, Permission, User
 
 
 class ApplicationForm(ModelForm):
     class Meta:
         model = Application
         # TODO: Is this the right fields?
-        fields = ('name',)
+        fields = ('name', 'roles',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
+        self.fields['roles'].widget.attrs.update({'class': 'form-control'})
 
 
 class RoleForm(ModelForm):
     class Meta:
         model = Role
-        fields = ('name', 'parents', 'permissions')
+        fields = ('name', 'parents', 'permissions',)
 
     def __init__(self, data=None, *args, **kwargs):
         # We do these tests on the data to catch when the role has no parents or permissions
@@ -47,3 +48,19 @@ class PermissionForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super(PermissionForm, self).__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
+
+
+class UserForm(ModelForm):
+    class Meta:
+        model = User
+        fields = ('roles',)
+
+    def __init__(self, *args, **kwargs):
+        super(UserForm, self).__init__(*args, **kwargs)
+        # self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
+        # self.fields['middle_name'].widget.attrs.update({'class': 'form-control'})
+        # self.fields['middle_name'].required = False
+        # self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
+        # self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['roles'].widget.attrs.update({'class': 'form-control'})
+        self.fields['roles'].required = False
