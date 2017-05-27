@@ -28,7 +28,7 @@ SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
-TIME_TO_LIVE = timedelta(minutes=1) # TODO: change back to something longer
+TIME_TO_LIVE = timedelta(hours=1) # TODO: change back to something longer
 ACCOUNT_ACTIVATION_TIME = timedelta(minutes=1) # TODO: change back to days=1
 PASSWORD_RESET_TIME = timedelta(minutes=1) # TODO: change back to days=1
 
@@ -69,7 +69,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'houdini_admin',
-    'houdini_server',
+    # We import the AppConfig so that it can set up its signals
+    'houdini_server.apps.HoudiniServerConfig',
     'houdini_client',
 ]
 

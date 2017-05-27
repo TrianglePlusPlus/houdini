@@ -1,14 +1,13 @@
 from django.apps import AppConfig
-from . models import *
 
 
-class HoudiniCoreConfig(AppConfig):
-    name = 'houdini_core'
-    verbose_name = 'Houdini Core'
+class HoudiniServerConfig(AppConfig):
+    name = 'houdini_server'
+    verbose_name = 'Houdini Server'
 
     def ready(self):
         """
-        Initializes the RolesToPermissions table
+        Connects up the signal receivers in signals.py
         :return:
         """
-        RolesToPermissions.refresh_table()
+        import houdini_server.signals

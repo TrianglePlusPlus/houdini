@@ -11,7 +11,9 @@
     {% endif %}
     <h2>
         {{ name|capfirst }}
-        <a class="btn btn-success pull-right" href="/{{ name }}s/create">Create {{ name|capfirst }}</a>
+        {% if create_button %}
+        <a class="btn btn-success pull-right" href="{% url 'create_'|add:name %}">Create {{ name|capfirst }}</a>
+        {% endif %}
     </h2>
     <table class="table table-striped">
         <thead>
@@ -31,8 +33,10 @@
             {% for column, cell in row.items %}
             {% if forloop.last %}
             <td>
-                <a href="{{ name }}s/edit/{{ cell }}"><span class="fa fa-pencil-square-o text-info"></span></a>
-                <a href="{{ name }}s/delete/{{ cell }}"><span class="fa fa-trash-o text-warning"></span></a>
+                <a href="{% url 'edit_'|add:name pk=cell %}"><span class="fa fa-pencil-square-o text-info"></span></a>
+                {% if delete_button %}
+                <a href="{% url 'delete_'|add:name pk=cell %}"><span class="fa fa-trash-o text-warning"></span></a>
+                {% endif %}
             </td>
             {% else %}
             <td>{{ cell }}</td>
@@ -48,7 +52,7 @@
         <div class="pull-left">
             {% if table.page.has_previous %}
             <a class="btn btn-primary"
-               href="{% if table.page.number is 2 %}{{ name }}s{% else %}?page={{ table.page.previous_page_number }}{% endif %}"><span>&larr;</span>
+               href="{% if table.page.number is 2 %}{% url name|add:'s' %}{% else %}?page={{ table.page.previous_page_number }}{% endif %}"><span>&larr;</span>
                 Previous</a>
             {% endif %}
             {% if table.page.has_next %}
