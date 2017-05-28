@@ -6,8 +6,8 @@ class LoginForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Email'})
+        self.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
 
 
 class RegisterForm(forms.Form):
@@ -36,13 +36,13 @@ class RegisterForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['middle_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
-        self.fields['confirm_email'].widget.attrs.update({'class': 'form-control'})
-        self.fields['password'].widget.attrs.update({'class': 'form-control'})
-        self.fields['confirm_password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['first_name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'First Name'})
+        self.fields['middle_name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Middle Name'})
+        self.fields['last_name'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Last Name'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Email'})
+        self.fields['confirm_email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Email'})
+        self.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
+        self.fields['confirm_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm Password'})
 
 
 class PasswordChangeForm(forms.Form):
@@ -60,9 +60,9 @@ class PasswordChangeForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['password'].widget.attrs.update({'class': 'form-control'})
-        self.fields['new_password'].widget.attrs.update({'class': 'form-control'})
-        self.fields['confirm_new_password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Password'})
+        self.fields['new_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'New Password'})
+        self.fields['confirm_new_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm New Password'})
 
 
 class PasswordResetForm(forms.Form):
@@ -70,7 +70,7 @@ class PasswordResetForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['email'].widget.attrs.update({'class': 'form-control'})
+        self.fields['email'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Email'})
 
 
 class PasswordSetForm(forms.Form):
@@ -87,5 +87,5 @@ class PasswordSetForm(forms.Form):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['new_password'].widget.attrs.update({'class': 'form-control'})
-        self.fields['confirm_new_password'].widget.attrs.update({'class': 'form-control'})
+        self.fields['new_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'New Password'})
+        self.fields['confirm_new_password'].widget.attrs.update({'class': 'form-control', 'placeholder': 'Confirm New Password'})

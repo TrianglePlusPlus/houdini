@@ -11,7 +11,7 @@
     {% include 'houdini_admin/messages.html' %}
 
     <h2>
-        {{ name|capfirst }}
+        {{ name|capfirst }}s
         {% if create_button %}
         <a class="btn btn-success pull-right" href="{% url 'create_'|add:name %}">Create {{ name|capfirst }}</a>
         {% endif %}
