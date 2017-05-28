@@ -13,7 +13,6 @@ urlpatterns = [
     # TODO: should we be able to create/delete users from houdini admin panel, or edit more than roles?
     #       if so we'd need to implement connections with client apps to let them know what has changed
     url(r'^users/edit/(?P<pk>\d+)$', views.UserUpdate.as_view(), name='edit_user'),
-    # url(r'^profiles$', views.profiles, name='profiles'),
     url(r'^roles/$', views.roles, name='roles'),
     url(r'^roles/create$', views.create_role, name='create_role'),
     url(r'^roles/edit/(?P<pk>\d+)$', views.RoleUpdate.as_view(), name='edit_role'),
