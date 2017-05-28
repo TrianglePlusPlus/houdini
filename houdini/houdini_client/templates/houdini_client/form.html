@@ -1,0 +1,42 @@
+{% extends 'houdini_admin/base.html' %}
+
+{% block messages %}
+<!-- This is to override the position of the messages block in base.html -->
+<!-- messages.html is included below, inside the main div -->
+{% endblock %}
+
+{% block content %}
+
+<div class="col-md-6 col-md-offset-3">
+    {% include 'houdini_admin/messages.html' %}
+
+    <h3>{{ title }}</h3>
+    <hr>
+
+    {% for error in form.non_field_errors %}
+    <div class="alert alert-danger">
+        {{ error }}
+        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    </div>
+    {% endfor %}
+
+    <form action="" method="post">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group {% if field.errors %}has-error{% endif %}">
+            {% if field.errors %}
+            <div class="alert alert-danger">
+                {{ field.errors.as_text|slice:"2:" }}
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+            </div>
+            {% endif %}
+            <label class="control-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+        </div>
+        {% endfor %}
+        <button type="submit" class="btn btn-primary">{{ action }}</button>
+    </form>
+
+</div>
+
+{% endblock %}
