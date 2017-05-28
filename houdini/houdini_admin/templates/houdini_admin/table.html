@@ -1,16 +1,17 @@
 {% extends 'houdini_admin/base.html' %}
+
+{% block messages %}
+<!-- This is to override the position of the messages block in base.html -->
+<!-- messages.html is included below, inside the main div -->
+{% endblock %}
+
 {% block content %}
+
 <div class="col-md-10 col-md-offset-1">
-    {% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-        {{ message }}
-        <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
-    </div>
-    {% endfor %}
-    {% endif %}
+    {% include 'houdini_admin/messages.html' %}
+
     <h2>
-        {{ name|capfirst }}
+        {{ name|capfirst }}s
         {% if create_button %}
         <a class="btn btn-success pull-right" href="{% url 'create_'|add:name %}">Create {{ name|capfirst }}</a>
         {% endif %}
@@ -68,4 +69,5 @@
     </div>
     {% endif %}
 </div>
+
 {% endblock %}

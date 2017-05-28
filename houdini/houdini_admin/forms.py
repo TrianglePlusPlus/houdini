@@ -57,10 +57,5 @@ class UserForm(ModelForm):
 
     def __init__(self, *args, **kwargs):
         super(UserForm, self).__init__(*args, **kwargs)
-        # self.fields['first_name'].widget.attrs.update({'class': 'form-control'})
-        # self.fields['middle_name'].widget.attrs.update({'class': 'form-control'})
-        # self.fields['middle_name'].required = False
-        # self.fields['last_name'].widget.attrs.update({'class': 'form-control'})
-        # self.fields['email'].widget.attrs.update({'class': 'form-control'})
         self.fields['roles'].widget.attrs.update({'class': 'form-control'})
         self.fields['roles'].required = False

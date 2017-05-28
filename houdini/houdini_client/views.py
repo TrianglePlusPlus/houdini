@@ -66,7 +66,12 @@ def login(request):
                 messages.error(request, "Invalid login.")
     else:
         form = LoginForm()
-        return render(request, "houdini_client/login.html", {'form': form})
+
+    return render(request, "houdini_client/form.html", {
+        'title': 'Login',
+        'action': 'Login',
+        'form': form}
+    )
 
 def register(request):
     if request.method == "POST":
@@ -101,12 +106,14 @@ def register(request):
                 return redirect("index")
             else:
                 messages.error(request, r.text)
-                return render(request, "houdini_client/register.html", {'form': form})
-        else:
-            return render(request, "houdini_client/register.html", {'form': form})
     else:
         form = RegisterForm()
-        return render(request, "houdini_client/register.html", {'form': form})
+
+    return render(request, "houdini_client/form.html", {
+        'title': 'Register',
+        'action': 'Register',
+        'form': form}
+    )
 
 def activate(request, key):
     expired = False
@@ -146,7 +153,10 @@ def activate(request, key):
         else:
             messages.error(request, r.text)
 
-    return render(request, "houdini_client/activation.html", {'expired': expired, 'key': key})
+    return render(request, "houdini_client/activation.html", {
+        'expired': expired,
+        'key': key}
+    )
 
 def logout(request):
     messages.success(request, "Successfully logged out")
@@ -189,7 +199,11 @@ def password_change(request):
     else:
         form = PasswordChangeForm()
 
-    return render(request, "houdini_client/password_change.html", {'form': form})
+    return render(request, "houdini_client/form.html", {
+        'title': 'Change Password',
+        'action': 'Change Password',
+        'form': form}
+    )
 
 def password_reset(request):
     if request.method == "POST":
@@ -215,7 +229,11 @@ def password_reset(request):
     else:
         form = PasswordResetForm()
 
-    return render(request, "houdini_client/password_reset.html", {'form': form})
+    return render(request, "houdini_client/form.html", {
+        'title': 'Reset Password',
+        'action': 'Reset Password',
+        'form': form
+    })
 
 # very similar to password_change
 def password_set(request, key):
@@ -241,4 +259,9 @@ def password_set(request, key):
     else:
         form = PasswordSetForm()
 
-    return render(request, "houdini_client/password_set.html", {'key': key, 'form': form})
+    return render(request, "houdini_client/form.html", {
+        'title': 'Choose a new password',
+        'action': 'Set Password',
+        'key': key,
+        'form': form}
+    )

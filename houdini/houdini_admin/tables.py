@@ -28,6 +28,8 @@ class ApplicationTable(tables.Table):
 
 
 class UserTable(tables.Table):
+    roles_names = tables.Column(verbose_name='Roles')
+
     class Meta:
         model = User
         fields = ('name', 'email', 'is_active', 'roles_names', 'date_joined', 'id')

@@ -6,6 +6,7 @@
 		<title>Houdini</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 		<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
 		<link rel="stylesheet" type="text/css" href="{% static 'houdini_admin/css/style.css' %}">
 		<script src="http://code.jquery.com/jquery-2.2.4.min.js"   integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="   crossorigin="anonymous"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
@@ -16,25 +17,31 @@
 			</div>
 			<ul class="sidebar-nav">
 				{% if user.is_authenticated %}
-					<li><a href="/logout"><span class="fa fa-sign-out fa-fw" aria-hidden="true"></span>Logout</a></li>
+					<li><a href="{% url 'me' %}"><span class="fa fa-id-card fa-fw" aria-hidden="true"></span>hi, {{ user.first_name }}</a></li>
+					<li><a href="{% url 'logout' %}"><span class="fa fa-sign-out fa-fw" aria-hidden="true"></span>Logout</a></li>
 				{% else %}
-					<li><a href="/login"><span class="fa fa-sign-in fa-fw" aria-hidden="true"></span>Login</a></li>
+					<li style="visibility: hidden;"><a href="{% url 'login' %}"><span class="fa fa-sign-in fa-fw" aria-hidden="true"></span>Login</a></li>
+					<li><a href="{% url 'login' %}"><span class="fa fa-sign-in fa-fw" aria-hidden="true"></span>Login</a></li>
 				{% endif %}
-				<li><a href="/hierarchy"><span class="fa fa-sitemap fa-fw" aria-hidden="true"></span>Hierarchy</a></li>
-				<li><a href="/applications"><span class="fa fa-server fa-fw" aria-hidden="true"></span>Applications</a></li>
-				<li><a href="/users"><span class="fa fa-user fa-fw" aria-hidden="true"></span>Users</a></li>
-				<!--li><a href="/profiles"><span class="fa fa-id-card fa-fw" aria-hidden="true"></span>Profiles</a></li-->
-				<li><a href="/roles"><span class="fa fa-users fa-fw" aria-hidden="true"></span>Roles</a></li>
-				<li><a href="/permissions"><span class="fa fa-list fa-fw" aria-hidden="true"></span>Permissions</a></li>
+				<li><a href="{% url 'hierarchy' %}"><span class="fa fa-sitemap fa-fw" aria-hidden="true"></span>Hierarchy</a></li>
+				<li><a href="{% url 'applications' %}"><span class="fa fa-server fa-fw" aria-hidden="true"></span>Applications</a></li>
+				<li><a href="{% url 'users' %}"><span class="fa fa-user fa-fw" aria-hidden="true"></span>Users</a></li>
+				<li><a href="{% url 'roles' %}"><span class="fa fa-users fa-fw" aria-hidden="true"></span>Roles</a></li>
+				<li><a href="{% url 'permissions' %}"><span class="fa fa-list fa-fw" aria-hidden="true"></span>Permissions</a></li>
 			</ul>
 		</div>
 
 		<div class="page">
-			<nav class="navbar navbar-default navbar-static-top">
+			<nav class="navbar navbar-default navbar-fixed navbar-static-top">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="{% url 'index' %}">HOUDINI</a>
+				</div>
 			</nav>
 			<div class="content container-fluid">
 				<div class="row">
-			        {% include 'houdini_admin/messages.html' %}
+					{% block messages %}
+				        {% include 'houdini_admin/messages.html' %}
+					{% endblock %}
 					{% block content %}
 					{% endblock %}
 				</div>
