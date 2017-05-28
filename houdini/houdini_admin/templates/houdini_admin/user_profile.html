@@ -1,0 +1,63 @@
+{% extends 'houdini_admin/base.html' %}
+{% block content %}
+
+<div class="panel panel-default user-card">
+    <div class="panel-heading">
+        {{ user }}
+    </div>
+
+    <ul class="list-group">
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">First name</div>
+                <div class="user-detail col-md-8">{{ user.first_name }}</div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">Middle name</div>
+                <div class="user-detail col-md-8">
+                    {% if user.middle_name %}
+                        {{ user.middle_name }}
+                    {% else %}
+                        &mdash;
+                    {% endif %}
+                </div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">Last name</div>
+                <div class="user-detail col-md-8">{{ user.last_name }}</div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">Email</div>
+                <div class="user-detail col-md-8"><a href="mailto:{{ user.email }}">{{ user.email }}</a></div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">Date joined</div>
+                <div class="user-detail col-md-8">{{ user.date_joined }}</div>
+            </div>
+        </li>
+        <li class="list-group-item">
+            <div class="row">
+                <div class="user-attribute col-md-4">Roles</div>
+                <div class="user-detail col-md-8">
+                    {% for role in user.roles.all %}
+                    <p>{{ role }}</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </li>
+    </ul>
+
+    <div class="panel-body">
+        <a href="{% url 'password_change' %}" class="btn btn-primary" role="button">Change Your Password</a>
+    </div>
+</div>
+
+{% endblock %}

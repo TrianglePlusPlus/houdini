@@ -16,8 +16,10 @@
 			</div>
 			<ul class="sidebar-nav">
 				{% if user.is_authenticated %}
+					<li><a href="{% url 'me' %}"><span class="fa fa-id-card fa-fw" aria-hidden="true"></span>hi, {{ user.first_name }}</a></li>
 					<li><a href="{% url 'logout' %}"><span class="fa fa-sign-out fa-fw" aria-hidden="true"></span>Logout</a></li>
 				{% else %}
+					<li style="visibility: hidden;"><a href="{% url 'login' %}"><span class="fa fa-sign-in fa-fw" aria-hidden="true"></span>Login</a></li>
 					<li><a href="{% url 'login' %}"><span class="fa fa-sign-in fa-fw" aria-hidden="true"></span>Login</a></li>
 				{% endif %}
 				<li><a href="{% url 'hierarchy' %}"><span class="fa fa-sitemap fa-fw" aria-hidden="true"></span>Hierarchy</a></li>
@@ -29,7 +31,10 @@
 		</div>
 
 		<div class="page">
-			<nav class="navbar navbar-default navbar-static-top">
+			<nav class="navbar navbar-default navbar-fixed navbar-static-top">
+				<div class="navbar-header">
+					<a class="navbar-brand" href="{% url 'index' %}">HOUDINI</a>
+				</div>
 			</nav>
 			<div class="content container-fluid">
 				<div class="row">

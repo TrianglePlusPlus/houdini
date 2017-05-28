@@ -1,5 +1,4 @@
-body
-{
+body {
 	margin: 0;
 	padding: 0;
 	font-family: Tahoma, Geneva, sans-serif;
@@ -7,8 +6,7 @@ body
 	overflow: hidden;
 }
 
-.sidebar
-{
+.sidebar {
 	position: absolute;
 	background: #083479;
 	width: 225px;
@@ -17,66 +15,95 @@ body
 	bottom: 0;
 }
 
-.sidebar-nav
-{
+.sidebar-nav {
 	width: 100%;
 	padding: 0 20px;
 	list-style-type: none;
 }
 
-.sidebar-nav li
-{
+.sidebar-nav li {
 	padding: 10px 0;
 	line-height: 0;
 	vertical-align: middle;
 }
 
-.sidebar-nav li a
-{
+.sidebar-nav li a {
 	color: #ffffff;
 	font-size: 14px;
 	text-transform: uppercase;
 }
 
-.sidebar-nav li a:hover
-{
+.sidebar-nav li a:hover {
 	text-decoration: none;
 }
 
-.sidebar-nav li a span
-{
+.sidebar-nav li a span {
 	display: inline-block;
 	font-size: 28px;
 	margin-right: 10px;
 	vertical-align: middle;
 }
 
-.logo-container
-{
+.logo-container {
 	height: 80px;
 }
 
-.page
-{
+.page {
 	position: absolute;
 	width: calc(100% - 225px);
 	top: 0;
 	left: 225px;
 	bottom: 0;
+	overflow: auto;
 }
 
-.navbar
-{
+.navbar .navbar-header {
+	display: inline-block;
+	float: none;
+	vertical-align: top;
+}
+
+.navbar {
+	text-align: center;
+}
+
+.navbar {
 	margin: 0;
 	padding: 0;
 }
 
-.content
-{
+.content {
 	margin: 25px;
 }
 
-/*.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited 
+.user-card {
+	width: 50rem;
+	margin: auto;
+}
+
+.user-card .panel-heading {
+	font-size: 1.5em;
+	text-align: center;
+	font-weight: bold;
+}
+
+.user-card .list-group-item {
+	padding: 1em;
+}
+
+.user-card .user-attribute {
+	font-weight: bold;
+}
+
+.user-card .user-detail {
+	text-align: right;
+}
+
+.user-card .panel-body {
+	text-align: center;
+}
+
+/*.btn-success, .btn-success:hover, .btn-success:active, .btn-success:visited
 {
     background-color: #08794d !important;
 }

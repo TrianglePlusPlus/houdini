@@ -30,6 +30,12 @@ def index(request):
     return render(request, 'houdini_admin/index.html')
 
 
+@login_required
+def user_profile(request):
+    user = User.objects.get(email=request.user.email)
+    return render(request, 'houdini_admin/user_profile.html', {'user': user})
+
+
 def hierarchy(request):
     return render(request, 'houdini_admin/hierarchy.html')
 
