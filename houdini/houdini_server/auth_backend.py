@@ -19,8 +19,11 @@ def authenticate_jwt(jwt_string, app_secret):
 def authenticate(email=None, password=None):
     try:
         user = User.objects.get(email=email)
-        if user.check_password(password) and user.is_active:
-            return user
+        if user.check_password(password):
+            if user.is_active:
+                return user
+            else:
+                return False
         else:
             return None
     except User.DoesNotExist:

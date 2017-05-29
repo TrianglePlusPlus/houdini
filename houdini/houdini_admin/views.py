@@ -10,23 +10,9 @@ from houdini_server.models import Application, User, Role, Permission
 from houdini_client.decorators import login_required, role_required, permission_required
 from .forms import ApplicationForm, UserForm, RoleForm, PermissionForm
 from .tables import ApplicationTable, UserTable, RoleTable, PermissionTable
-from .utils import JsonResponse
 
 
 def index(request):
-    # dir_it = Role.create('Director of IT')
-    # dir_it.add_permission('timelord')
-    # dir_it.add_permission('backdoor')
-    # dir_it.add_permission('over9000')
-    # dir_it.add_parent('it')
-    # dir_it.add_parent('director')
-    # dir_it.save()
-    # ceo = Role.create('CEO')
-    # ceo.add_permission('meep')
-    # ceo.add_parent('director')
-    # ceo.add_parent('officer')
-    # ceo.save()
-    # return JsonResponse(Role.get_json())
     return render(request, 'houdini_admin/index.html')
 
 

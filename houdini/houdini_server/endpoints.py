@@ -80,8 +80,9 @@ class LoginEndpoint(Endpoint):
         password = self.data['password']
         user = authenticate(email=email, password=password)
         if user is None:
-            return HttpResponseUnauthorized(reason='Invalid user/password combination')
-            # TODO: or user could just be inactive. do we need to be more specific?
+            return HttpResponseUnauthorized(reason="Invalid user/password combination")
+        elif user is False:
+            return HttpResponseUnauthorized(reason="User is inactive")
 
         # Get all of the roles for the profiles they are logging in as
         app_roles = set(self.app.roles.all())

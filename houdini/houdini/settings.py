@@ -57,8 +57,6 @@ ADMINS = (
 
 AUTH_USER_MODEL = 'houdini_admin.User'
 AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.RemoteServerAuthBackend']
-# TODO: do we want this?
-# SESSION_SAVE_EVERY_REQUEST = True
 
 # Application definition
 
@@ -80,7 +78,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'houdini_client.middleware.AuthenticationMiddleware'
