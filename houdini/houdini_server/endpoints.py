@@ -122,7 +122,6 @@ class CreateUserEndpoint(Endpoint):
         if User.objects.filter(email=email).count() != 0:
             # A user already exists so return an error
             return HttpResponseConflict('User already exists')
-            # TODO: "email already in use?"
 
         # create user
         user = User.objects.create_user(
@@ -133,13 +132,8 @@ class CreateUserEndpoint(Endpoint):
             middle_name=middle_name,
             last_name=last_name
         )
-        # TODO: default roles/permissions?
         user.save()
-
-        # TODO: what to send back?
-        # response_data = {}
-        # response_jwt = jwt.encode(response_data, self.app.secret)
-        # return HttpResponse(response_jwt)
+        # status code 201
         return HttpResponseCreated()
 
 

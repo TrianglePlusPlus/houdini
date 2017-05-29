@@ -6,7 +6,6 @@ from houdini_server.models import Application, Role, Permission, User
 class ApplicationForm(ModelForm):
     class Meta:
         model = Application
-        # TODO: Is this the right fields?
         fields = ('name', 'roles', 'activate_url', 'password_set_url',)
 
     def __init__(self, *args, **kwargs):

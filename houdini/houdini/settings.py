@@ -29,9 +29,9 @@ HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
 ISO_8601 = "%Y-%m-%dT%H:%M:%S"
-TIME_TO_LIVE = timedelta(hours=1) # TODO: change back to something longer
-ACCOUNT_ACTIVATION_TIME = timedelta(minutes=1) # TODO: change back to days=1
-PASSWORD_RESET_TIME = timedelta(minutes=1) # TODO: change back to days=1
+TIME_TO_LIVE = timedelta(weeks=1)
+ACCOUNT_ACTIVATION_TIME = timedelta(days=1)
+PASSWORD_RESET_TIME = timedelta(days=1)
 
 # Email
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'

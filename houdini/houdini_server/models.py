@@ -113,11 +113,6 @@ class Role(models.Model):
             'permissions': self.get_permission_slugs_for_role()
         }
 
-    # this method is super inefficient
-    def get_all_parents(self):
-        # TODO: Is this necessary?
-        pass
-
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -249,8 +244,6 @@ class User(AbstractBaseUser):
             fail_silently=False
         )
 
-    # TODO: should there be a limit to the amount of activation keys you can generate?
-    # or maybe a time limit between each regeneration?
     def regenerate_activation_key(self, activate_url):
         self.generate_activation_key()
         self.send_activation_email(activate_url, resend=True)

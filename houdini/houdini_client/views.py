@@ -36,17 +36,13 @@ def login(request):
                 if r.get('http_response') is not None:
                     # decode the JWT received in the HTTP response which contains roles/permissions
                     data = authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
-                    # TODO: check if data == None?
-                    # TODO: convert roles and permissions to sets?
+
                     # save the roles and permissions in the session
-                    request.session["roles"] = data["roles"]
-                    request.session["permissions"] = data["permissions"]
+                    request.session["roles"] = data.get("roles")
+                    request.session["permissions"] = data.get("permissions")
                     request.session["logged_in_since"] = timezone.now().strftime(settings.ISO_8601)
                     # then redirect to the "next" page (which will hit @login_required again)
                     return redirect(request.GET.get("next", "index"))
-                else:
-                    # TODO: handle an error
-                    pass
             # otherwise, response will have been filled in with what went wrong
             else:
                 if r.get('failure_type') == FailureType.local_failure:
@@ -67,9 +63,6 @@ def login(request):
                         # TODO: should i auth_login the user here to make it smoother? This exact scenario is
                         #       basically the whole reason we created houdini
                         messages.info(request, "Local user successfully created. Try logging in again.")
-                    else:
-                        # TODO: handle an error
-                        pass
                 elif r.get('failure_type') == FailureType.server_failure:
                     if r.get('http_response') is not None:
                         messages.error(request, r['http_response'].text)
@@ -139,7 +132,7 @@ def activate(request, key):
     if request.method == "POST":
         # make a JWT jwt_string of the key signed with app_secret
         jwt_string = jwt.encode({
-            "activation_key": key # TODO: request.POST.get('key')?
+            "activation_key": request.POST.get('key')
         }, settings.HOUDINI_SECRET)
 
         # POST it to the activate endpoint
@@ -183,7 +176,6 @@ def logout(request):
 
     auth_logout(request)
 
-    # TODO: ?
     request.session["roles"] = []
     request.session["permissions"] = []
     request.session["logged_in_since"] = (timezone.now() - settings.TIME_TO_LIVE).strftime(settings.ISO_8601)
@@ -265,7 +257,7 @@ def password_set(request, key):
         if form.is_valid():
             # make a JWT jwt_string of the key signed with app_secret
             jwt_string = jwt.encode({
-                "password_reset_key": key, # TODO: request.POST.get('key') ?
+                "password_reset_key": key,
                 "new_password": request.POST.get('new_password')
             }, settings.HOUDINI_SECRET)
 
