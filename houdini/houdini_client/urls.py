@@ -10,4 +10,5 @@ urlpatterns = [
     url(r'^password_change/$', views.password_change, name='password_change'),
     url(r'^password_reset/$', views.password_reset, name='password_reset'),
     url(r'^password_set/(?P<key>.+)$', views.password_set, name='password_set'),
+    url(r'^401/$', views.unauthorized_401, name='401'),
 ]

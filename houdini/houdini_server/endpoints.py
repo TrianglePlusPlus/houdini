@@ -1,6 +1,4 @@
-from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -10,7 +8,7 @@ import jwt
 
 from .models import Application, User, RolesToPermissions
 from .http import *
-from .auth_backend import authenticate as server_authenticate
+from .auth_backend import authenticate, authenticate_jwt
 
 # Endpoints
 
@@ -34,15 +32,6 @@ class Endpoint(View):
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-    @staticmethod
-    def authenticate_jwt(jwt_string, app_secret):
-        # Check to see if the signature is correct
-        try:
-            data = jwt.decode(jwt_string, app_secret)
-            return data
-        except jwt.DecodeError:
-            return None
 
     @staticmethod
     def get_app(app_key):
@@ -75,7 +64,7 @@ class Endpoint(View):
             # We'll return a server error if they don't actually send anything
             self.is_valid_request = False
             return HttpResponseInternalServerError(reason="JWT string missing.")
-        self.data = self.authenticate_jwt(self.jwt_string, self.app.secret)
+        self.data = authenticate_jwt(self.jwt_string, self.app.secret)
         if self.data is None:
             self.is_valid_request = False
             return HttpResponseUnauthorized(reason="Web token signature invalid.")
@@ -89,7 +78,7 @@ class LoginEndpoint(Endpoint):
             return error_response
         email = self.data['email']
         password = self.data['password']
-        user = server_authenticate(email=email, password=password)
+        user = authenticate(email=email, password=password)
         if user is None:
             return HttpResponseUnauthorized(reason='Invalid user/password combination')
             # TODO: or user could just be inactive. do we need to be more specific?
@@ -212,7 +201,7 @@ class PasswordChangeEndpoint(Endpoint):
         password = self.data['password']
         new_password = self.data['new_password']
 
-        user = server_authenticate(email=email, password=password)
+        user = authenticate(email=email, password=password)
         if user is None:
             # status code 401
             return HttpResponseUnauthorized(reason="Old password was incorrect")

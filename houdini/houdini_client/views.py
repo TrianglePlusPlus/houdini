@@ -12,12 +12,12 @@ import jwt
 import requests
 import urllib.parse
 
-from houdini_server.endpoints import Endpoint
 from .decorators import login_required
 from .forms import LoginForm, RegisterForm, PasswordChangeForm, PasswordResetForm, PasswordSetForm
-from .auth_backend import FailureType
+from .auth_backend import authenticate_jwt, FailureType
 
 User = get_user_model()
+
 
 def login(request):
     if request.method == "POST":
@@ -32,14 +32,14 @@ def login(request):
             auth_login(request, user)
 
             if r.get('http_response') is not None:
-                # decode the JWT received in the HTTP reponse which contains roles/permissions
-                data = Endpoint.authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
+                # decode the JWT received in the HTTP response which contains roles/permissions
+                data = authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
                 # TODO: check if data == None?
                 # TODO: convert roles and permissions to sets?
                 # save the roles and permissions in the session
                 request.session["roles"] = data["roles"]
                 request.session["permissions"] = data["permissions"]
-                request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
+                request.session["logged_in_since"] = timezone.now().strftime(settings.ISO_8601)
                 # then redirect to the "next" page (which will hit @login_required again)
                 return redirect(request.GET.get("next", "index"))
             else:
@@ -72,6 +72,7 @@ def login(request):
         'action': 'Login',
         'form': form}
     )
+
 
 def register(request):
     if request.method == "POST":
@@ -114,6 +115,7 @@ def register(request):
         'action': 'Register',
         'form': form}
     )
+
 
 def activate(request, key):
     expired = False
@@ -158,6 +160,7 @@ def activate(request, key):
         'key': key}
     )
 
+
 def logout(request):
     messages.success(request, "Successfully logged out")
 
@@ -166,9 +169,10 @@ def logout(request):
     # TODO: ?
     request.session["roles"] = []
     request.session["permissions"] = []
-    request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
+    request.session["logged_in_since"] = (timezone.now() - settings.TIME_TO_LIVE).strftime(settings.ISO_8601)
     # then redirect to the home page
     return redirect('index')
+
 
 @login_required
 def password_change(request):
@@ -205,6 +209,7 @@ def password_change(request):
         'form': form}
     )
 
+
 def password_reset(request):
     if request.method == "POST":
         form = PasswordResetForm(request.POST)
@@ -234,6 +239,7 @@ def password_reset(request):
         'action': 'Reset Password',
         'form': form
     })
+
 
 # very similar to password_change
 def password_set(request, key):
@@ -265,3 +271,7 @@ def password_set(request, key):
         'key': key,
         'form': form}
     )
+
+
+def unauthorized_401(request):
+    return render(request, "houdini_client/401.html")

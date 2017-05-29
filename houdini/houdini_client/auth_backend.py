@@ -2,23 +2,35 @@ from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.contrib.auth.hashers import check_password
+from django.utils import timezone
 
 from datetime import datetime
 from enum import Enum
 import jwt
+import pytz
 import requests
 
 User = get_user_model()
 
+def authenticate_jwt(jwt_string, app_secret):
+    # Check to see if the signature is correct
+    try:
+        data = jwt.decode(jwt_string, app_secret)
+        return data
+    except jwt.DecodeError:
+        return None
+
 def is_logged_in(request):
     if request.session.get('logged_in_since'):
-        return (datetime.now() - datetime.strptime(request.session['logged_in_since'], "%Y-%m-%dT%H:%M:%S")) < settings.TIME_TO_LIVE
+        logged_in_since = datetime.strptime(request.session['logged_in_since'], settings.ISO_8601)
+        logged_in_since = pytz.utc.localize(logged_in_since)
+        return (timezone.now() - logged_in_since) < settings.TIME_TO_LIVE
     else:
         return False
 
 FailureType = Enum('FailureType', 'server_failure local_failure')
 
-class AuthBackend(ModelBackend):
+class RemoteServerAuthBackend(ModelBackend):
     def authenticate(self, email=None, password=None, response=None):
         if response is None:
             response = {}

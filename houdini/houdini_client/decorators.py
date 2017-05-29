@@ -7,16 +7,16 @@ from django.contrib import messages
 from datetime import datetime
 import urllib.parse
 
+from .auth_backend import is_logged_in
+
 def login_required(fn):
     def new_fn(request, *args, **kwargs):
-        # check if logged in
-        if request.session.get('logged_in_since'):
-            if datetime.now() - datetime.strptime(request.session['logged_in_since'], "%Y-%m-%dT%H:%M:%S") < settings.TIME_TO_LIVE:
-                # logged in already! return the function unmodified
-                return fn(request, *args, **kwargs)
+        if is_logged_in(request):
+            # logged in already! return the function unmodified
+            return fn(request, *args, **kwargs)
 
         # TODO: either redirect to the specified login page OR
-        # go to the built-in-to-houdini-client login page
+        # go to the built-in-to-houdini-client login page (give them a setting or a way to pass it in as a kwarg)
         next_url = request.resolver_match.url_name
         response = redirect('login')
         response['Location'] += '?' + urllib.parse.urlencode({'next': next_url})

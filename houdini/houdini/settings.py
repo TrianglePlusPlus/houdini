@@ -28,6 +28,7 @@ SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
+ISO_8601 = "%Y-%m-%dT%H:%M:%S"
 TIME_TO_LIVE = timedelta(hours=1) # TODO: change back to something longer
 ACCOUNT_ACTIVATION_TIME = timedelta(minutes=1) # TODO: change back to days=1
 PASSWORD_RESET_TIME = timedelta(minutes=1) # TODO: change back to days=1
@@ -55,7 +56,7 @@ ADMINS = (
 
 
 AUTH_USER_MODEL = 'houdini_admin.User'
-AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.AuthBackend']
+AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.RemoteServerAuthBackend']
 # TODO: do we want this?
 # SESSION_SAVE_EVERY_REQUEST = True
 
