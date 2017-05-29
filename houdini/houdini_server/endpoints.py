@@ -121,7 +121,9 @@ class CreateUserEndpoint(Endpoint):
 
         # create user
         user = User.objects.create_user(
-            email, password=password,
+            email,
+            self.app.activate_url,
+            password=password,
             first_name=first_name,
             middle_name=middle_name,
             last_name=last_name
@@ -187,7 +189,7 @@ class RegenerateActivationKeyEndpoint(Endpoint):
         # a new one if they mistakenly ask
 
         # the activation key was valid, the user is currently inactive, and the key has expired!
-        user.regenerate_activation_key()
+        user.regenerate_activation_key(self.app.activate_url)
         user.save()
         # status code 200
         return HttpResponse("Check your email for a new activation link.")
@@ -233,7 +235,7 @@ class PasswordResetEndpoint(Endpoint):
 
         # send an email with a link to reset their password
         user.generate_password_reset_key()
-        user.send_password_reset_email()
+        user.send_password_reset_email(self.app.password_set_url)
         user.save()
         # status code 200
         return HttpResponse("Check your email for a link to reset your password.")

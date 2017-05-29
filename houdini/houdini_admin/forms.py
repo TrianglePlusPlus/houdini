@@ -7,12 +7,14 @@ class ApplicationForm(ModelForm):
     class Meta:
         model = Application
         # TODO: Is this the right fields?
-        fields = ('name', 'roles',)
+        fields = ('name', 'roles', 'activate_url', 'password_set_url',)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['name'].widget.attrs.update({'class': 'form-control'})
         self.fields['roles'].widget.attrs.update({'class': 'form-control'})
+        self.fields['activate_url'].widget.attrs.update({'class': 'form-control'})
+        self.fields['password_set_url'].widget.attrs.update({'class': 'form-control'})
 
 
 class RoleForm(ModelForm):

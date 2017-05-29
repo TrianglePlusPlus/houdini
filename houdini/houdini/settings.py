@@ -42,8 +42,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 BASE_URL = os.getenv('BASE_URL')
-def BUILD_ABSOLUTE_URL(relative_path):
-    return BASE_URL + relative_path
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
