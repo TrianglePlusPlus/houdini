@@ -56,6 +56,7 @@ class RemoteServerAuthBackend(ModelBackend):
                 return user
             except User.DoesNotExist:
                 response['failure_type'] = FailureType.local_failure
+                response['http_response'] = r
                 return None
         else:
             response['failure_type'] = FailureType.server_failure

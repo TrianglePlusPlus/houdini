@@ -98,6 +98,11 @@ class LoginEndpoint(Endpoint):
         response_data['permissions'] = list(permissions)
         response_data['roles'] = [role.name for role in relevant_roles]
         response_data['roles'] += [role.slug for role in relevant_roles]
+        # These are so if the local app has not registered this user, it can fill in with initial data
+        response_data['first_name'] = user.first_name
+        response_data['middle_name'] = user.middle_name
+        response_data['last_name'] = user.last_name
+
         response_jwt = jwt.encode(response_data, self.app.secret)
         return HttpResponse(response_jwt)
 
