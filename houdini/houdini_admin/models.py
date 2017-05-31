@@ -24,7 +24,6 @@ class User(AbstractBaseUser):
     first_name = models.CharField(max_length=32)
     last_name = models.CharField(max_length=32)
     email = models.EmailField(max_length=100, unique=True)
-    is_active = models.BooleanField(default=False) # TODO: get rid of.
     date_joined = models.DateTimeField(default=timezone.now)
 
     USERNAME_FIELD = 'email'

@@ -12,58 +12,68 @@ import jwt
 import requests
 import urllib.parse
 
-from houdini_server.endpoints import Endpoint
 from .decorators import login_required
 from .forms import LoginForm, RegisterForm, PasswordChangeForm, PasswordResetForm, PasswordSetForm
-from .auth_backend import FailureType
+from .auth_backend import authenticate_jwt, FailureType
 
 User = get_user_model()
 
+
 def login(request):
     if request.method == "POST":
-        email = request.POST.get("email")
-        password = request.POST.get("password")
-        r = {}
-        user = authenticate(email=email, password=password, response=r)
-        # if we were successfully logged in
-        if user:
-            messages.success(request, "Successfully logged in")
+        form = LoginForm(request.POST)
+        if form.is_valid():
+            email = form.cleaned_data.get("email")
+            password = form.cleaned_data.get("password")
+            r = {}
+            user = authenticate(email=email, password=password, response=r)
+            # if we were successfully logged in
+            if user:
+                messages.success(request, "Successfully logged in")
 
-            auth_login(request, user)
+                auth_login(request, user)
 
-            if r.get('http_response') is not None:
-                # decode the JWT received in the HTTP reponse which contains roles/permissions
-                data = Endpoint.authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
-                # TODO: check if data == None?
-                # TODO: convert roles and permissions to sets?
-                # save the roles and permissions in the session
-                request.session["roles"] = data["roles"]
-                request.session["permissions"] = data["permissions"]
-                request.session["logged_in_since"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
-                # then redirect to the "next" page (which will hit @login_required again)
-                return redirect(request.GET.get("next", "index"))
-            else:
-                # TODO: handle an error
-                pass
-        # otherwise, response will have been filled in with what went wrong
-        else:
-            if r.get('failure_type') == FailureType.local_failure:
-                # TODO: in this case, i.e. where you authenticate successfully against the auth server
-                #       but not locally, we might want to suggest that the user create a local account
-                #       that will link up with the existing auth server account and redirect to a view
-                # TODO: i also think i need to include houdini_server.http
-                return HttpResponseUnauthorized('Invalid user/password combination')
-            elif r.get('failure_type') == FailureType.server_failure:
                 if r.get('http_response') is not None:
-                    messages.error(request, r['http_response'].text)
-                else:
-                    messages.error(request, "Authentication Server Error")
+                    # decode the JWT received in the HTTP response which contains roles/permissions
+                    data = authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
 
-                response = redirect("login")
-                response['Location'] += '?' + urllib.parse.urlencode({'next': request.GET.get("next", "index")})
-                return response
+                    # save the roles and permissions in the session
+                    request.session["roles"] = data.get("roles")
+                    request.session["permissions"] = data.get("permissions")
+                    request.session["logged_in_since"] = timezone.now().strftime(settings.ISO_8601)
+                    # then redirect to the "next" page (which will hit @login_required again)
+                    return redirect(request.GET.get("next", "index"))
+            # otherwise, response will have been filled in with what went wrong
             else:
-                messages.error(request, "Invalid login.")
+                if r.get('failure_type') == FailureType.local_failure:
+                    # the user exists on the server, but not locally
+                    # so => create a local user that will be connected to the existing server user
+
+                    if r.get('http_response') is not None:
+                        # decode the JWT received in the HTTP response which contains roles/permissions
+                        data = authenticate_jwt(r['http_response'].text, settings.HOUDINI_SECRET)
+
+                        user = User.objects.create_user(
+                            email,
+                            first_name=data.get("first_name"),
+                            last_name=data.get("last_name")
+                        )
+                        user.save()
+
+                        # TODO: should i auth_login the user here to make it smoother? This exact scenario is
+                        #       basically the whole reason we created houdini
+                        messages.info(request, "Local user successfully created. Try logging in again.")
+                elif r.get('failure_type') == FailureType.server_failure:
+                    if r.get('http_response') is not None:
+                        messages.error(request, r['http_response'].text)
+                    else:
+                        messages.error(request, "Authentication Server Error")
+
+                    response = redirect("login")
+                    response['Location'] += '?' + urllib.parse.urlencode({'next': request.GET.get("next", "index")})
+                    return response
+                else:
+                    messages.error(request, "Invalid login.")
     else:
         form = LoginForm()
 
@@ -72,6 +82,7 @@ def login(request):
         'action': 'Login',
         'form': form}
     )
+
 
 def register(request):
     if request.method == "POST":
@@ -115,12 +126,13 @@ def register(request):
         'form': form}
     )
 
+
 def activate(request, key):
     expired = False
     if request.method == "POST":
         # make a JWT jwt_string of the key signed with app_secret
         jwt_string = jwt.encode({
-            "activation_key": key # TODO: request.POST.get('key')?
+            "activation_key": request.POST.get('key')
         }, settings.HOUDINI_SECRET)
 
         # POST it to the activate endpoint
@@ -158,17 +170,18 @@ def activate(request, key):
         'key': key}
     )
 
+
 def logout(request):
     messages.success(request, "Successfully logged out")
 
     auth_logout(request)
 
-    # TODO: ?
     request.session["roles"] = []
     request.session["permissions"] = []
-    request.session["logged_in_since"] = (datetime.now() - settings.TIME_TO_LIVE).strftime("%Y-%m-%dT%H:%M:%S")
+    request.session["logged_in_since"] = (timezone.now() - settings.TIME_TO_LIVE).strftime(settings.ISO_8601)
     # then redirect to the home page
     return redirect('index')
+
 
 @login_required
 def password_change(request):
@@ -205,6 +218,7 @@ def password_change(request):
         'form': form}
     )
 
+
 def password_reset(request):
     if request.method == "POST":
         form = PasswordResetForm(request.POST)
@@ -235,6 +249,7 @@ def password_reset(request):
         'form': form
     })
 
+
 # very similar to password_change
 def password_set(request, key):
     if request.method == "POST":
@@ -242,7 +257,7 @@ def password_set(request, key):
         if form.is_valid():
             # make a JWT jwt_string of the key signed with app_secret
             jwt_string = jwt.encode({
-                "password_reset_key": key, # TODO: request.POST.get('key') ?
+                "password_reset_key": key,
                 "new_password": request.POST.get('new_password')
             }, settings.HOUDINI_SECRET)
 
@@ -265,3 +280,7 @@ def password_set(request, key):
         'key': key,
         'form': form}
     )
+
+
+def unauthorized_401(request):
+    return render(request, "houdini_client/401.html")

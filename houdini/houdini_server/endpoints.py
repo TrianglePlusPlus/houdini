@@ -1,6 +1,4 @@
-from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponse
-from django.shortcuts import render
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -10,7 +8,7 @@ import jwt
 
 from .models import Application, User, RolesToPermissions
 from .http import *
-from .auth_backend import authenticate as server_authenticate
+from .auth_backend import authenticate, authenticate_jwt
 
 # Endpoints
 
@@ -34,15 +32,6 @@ class Endpoint(View):
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
         return super().dispatch(request, *args, **kwargs)
-
-    @staticmethod
-    def authenticate_jwt(jwt_string, app_secret):
-        # Check to see if the signature is correct
-        try:
-            data = jwt.decode(jwt_string, app_secret)
-            return data
-        except jwt.DecodeError:
-            return None
 
     @staticmethod
     def get_app(app_key):
@@ -75,7 +64,7 @@ class Endpoint(View):
             # We'll return a server error if they don't actually send anything
             self.is_valid_request = False
             return HttpResponseInternalServerError(reason="JWT string missing.")
-        self.data = self.authenticate_jwt(self.jwt_string, self.app.secret)
+        self.data = authenticate_jwt(self.jwt_string, self.app.secret)
         if self.data is None:
             self.is_valid_request = False
             return HttpResponseUnauthorized(reason="Web token signature invalid.")
@@ -89,10 +78,11 @@ class LoginEndpoint(Endpoint):
             return error_response
         email = self.data['email']
         password = self.data['password']
-        user = server_authenticate(email=email, password=password)
+        user = authenticate(email=email, password=password)
         if user is None:
-            return HttpResponseUnauthorized(reason='Invalid user/password combination')
-            # TODO: or user could just be inactive. do we need to be more specific?
+            return HttpResponseUnauthorized(reason="Invalid user/password combination")
+        elif user is False:
+            return HttpResponseUnauthorized(reason="User is inactive")
 
         # Get all of the roles for the profiles they are logging in as
         app_roles = set(self.app.roles.all())
@@ -108,6 +98,11 @@ class LoginEndpoint(Endpoint):
         response_data['permissions'] = list(permissions)
         response_data['roles'] = [role.name for role in relevant_roles]
         response_data['roles'] += [role.slug for role in relevant_roles]
+        # These are so if the local app has not registered this user, it can fill in with initial data
+        response_data['first_name'] = user.first_name
+        response_data['middle_name'] = user.middle_name
+        response_data['last_name'] = user.last_name
+
         response_jwt = jwt.encode(response_data, self.app.secret)
         return HttpResponse(response_jwt)
 
@@ -127,22 +122,18 @@ class CreateUserEndpoint(Endpoint):
         if User.objects.filter(email=email).count() != 0:
             # A user already exists so return an error
             return HttpResponseConflict('User already exists')
-            # TODO: "email already in use?"
 
         # create user
         user = User.objects.create_user(
-            email, password=password,
+            email,
+            self.app.activate_url,
+            password=password,
             first_name=first_name,
             middle_name=middle_name,
             last_name=last_name
         )
-        # TODO: default roles/permissions?
         user.save()
-
-        # TODO: what to send back?
-        # response_data = {}
-        # response_jwt = jwt.encode(response_data, self.app.secret)
-        # return HttpResponse(response_jwt)
+        # status code 201
         return HttpResponseCreated()
 
 
@@ -197,7 +188,7 @@ class RegenerateActivationKeyEndpoint(Endpoint):
         # a new one if they mistakenly ask
 
         # the activation key was valid, the user is currently inactive, and the key has expired!
-        user.regenerate_activation_key()
+        user.regenerate_activation_key(self.app.activate_url)
         user.save()
         # status code 200
         return HttpResponse("Check your email for a new activation link.")
@@ -212,7 +203,7 @@ class PasswordChangeEndpoint(Endpoint):
         password = self.data['password']
         new_password = self.data['new_password']
 
-        user = server_authenticate(email=email, password=password)
+        user = authenticate(email=email, password=password)
         if user is None:
             # status code 401
             return HttpResponseUnauthorized(reason="Old password was incorrect")
@@ -243,7 +234,7 @@ class PasswordResetEndpoint(Endpoint):
 
         # send an email with a link to reset their password
         user.generate_password_reset_key()
-        user.send_password_reset_email()
+        user.send_password_reset_email(self.app.password_set_url)
         user.save()
         # status code 200
         return HttpResponse("Check your email for a link to reset your password.")

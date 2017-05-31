@@ -19,8 +19,6 @@ class RegisterForm(forms.Form):
     password = forms.CharField(label='password', max_length=100, widget=forms.PasswordInput())
     confirm_password = forms.CharField(label='confirm password', max_length=100, widget=forms.PasswordInput())
 
-    # TODO: CAPSHCKA?
-
     def clean(self):
         email = self.cleaned_data.get('email')
         confirm_email = self.cleaned_data.get('confirm_email')

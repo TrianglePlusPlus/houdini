@@ -28,9 +28,10 @@ SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
-TIME_TO_LIVE = timedelta(hours=1) # TODO: change back to something longer
-ACCOUNT_ACTIVATION_TIME = timedelta(minutes=1) # TODO: change back to days=1
-PASSWORD_RESET_TIME = timedelta(minutes=1) # TODO: change back to days=1
+ISO_8601 = "%Y-%m-%dT%H:%M:%S"
+TIME_TO_LIVE = timedelta(weeks=1)
+ACCOUNT_ACTIVATION_TIME = timedelta(days=1)
+PASSWORD_RESET_TIME = timedelta(days=1)
 
 # Email
 EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS') == 'True'
@@ -41,8 +42,6 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 BASE_URL = os.getenv('BASE_URL')
-def BUILD_ABSOLUTE_URL(relative_path):
-    return BASE_URL + relative_path
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -55,9 +54,7 @@ ADMINS = (
 
 
 AUTH_USER_MODEL = 'houdini_admin.User'
-AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.AuthBackend']
-# TODO: do we want this?
-# SESSION_SAVE_EVERY_REQUEST = True
+AUTHENTICATION_BACKENDS = ['houdini_client.auth_backend.RemoteServerAuthBackend']
 
 # Application definition
 
@@ -79,7 +76,6 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    # 'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'houdini_client.middleware.AuthenticationMiddleware'

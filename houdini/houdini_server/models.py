@@ -1,14 +1,13 @@
 from datetime import datetime, timedelta
 import json
-import uuid
 from queue import Queue
+import uuid
 
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, UserManager
 from django.core.mail import send_mail
 from django.db import models
 from django.template.defaultfilters import slugify
-from django.urls import reverse
 from django.utils import timezone
 
 
@@ -16,6 +15,8 @@ class Application(models.Model):
     name = models.CharField(max_length=64, unique=True)
     key = models.CharField(max_length=32, blank=True)
     secret = models.CharField(max_length=32, blank=True)
+    activate_url = models.CharField(max_length=255, blank=True)
+    password_set_url = models.CharField(max_length=255, blank=True)
 
     roles = models.ManyToManyField("Role")
 
@@ -112,11 +113,6 @@ class Role(models.Model):
             'permissions': self.get_permission_slugs_for_role()
         }
 
-    # this method is super inefficient
-    def get_all_parents(self):
-        # TODO: Is this necessary?
-        pass
-
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name)
         super().save(*args, **kwargs)
@@ -190,7 +186,7 @@ class HoudiniUserManager(UserManager):
     def get_by_natural_key(self, email):
         return self.get(email=email)
 
-    def _create_user(self, email, password, **extra_fields):
+    def _create_user(self, email, password, activate_url, **extra_fields):
         """
         Creates and saves a User with the given email and password.
         """
@@ -200,12 +196,12 @@ class HoudiniUserManager(UserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.generate_activation_key()
-        user.send_activation_email()
+        user.send_activation_email(activate_url)
         user.save(using=self._db)
         return user
 
-    def create_user(self, email, password=None, **extra_fields):
-        return self._create_user(email, password, **extra_fields)
+    def create_user(self, email, activate_url, password=None, **extra_fields):
+        return self._create_user(email, password, activate_url, **extra_fields)
 
 
 class User(AbstractBaseUser):
@@ -234,8 +230,8 @@ class User(AbstractBaseUser):
         self.activation_key = uuid.uuid4().hex
         self.activation_key_expires = timezone.now() + settings.ACCOUNT_ACTIVATION_TIME
 
-    def send_activation_email(self, resend=False):
-        activation_link = settings.BUILD_ABSOLUTE_URL(reverse("activate", kwargs={'key': self.activation_key}))
+    def send_activation_email(self, activate_url, resend=False):
+        activation_link = activate_url + self.activation_key
         if resend:
             message = "Hello " + str(self) + "! Your old activation key expired so we have generated a new one for you. Go to this link to activate your account: " + activation_link
         else:
@@ -248,18 +244,16 @@ class User(AbstractBaseUser):
             fail_silently=False
         )
 
-    # TODO: should there be a limit to the amount of activation keys you can generate?
-    # or maybe a time limit between each regeneration?
-    def regenerate_activation_key(self):
+    def regenerate_activation_key(self, activate_url):
         self.generate_activation_key()
-        self.send_activation_email(resend=True)
+        self.send_activation_email(activate_url, resend=True)
 
     def generate_password_reset_key(self):
         self.password_reset_key = uuid.uuid4().hex
         self.password_key_expires = timezone.now() + settings.PASSWORD_RESET_TIME
 
-    def send_password_reset_email(self):
-        password_reset_link = settings.BUILD_ABSOLUTE_URL(reverse("password_set", kwargs={'key': self.password_reset_key}))
+    def send_password_reset_email(self, password_set_link):
+        password_reset_link = password_set_link + self.password_reset_key
         message = "Hello " + str(self) + "! To reset your password, visit this link: " + password_reset_link
         send_mail(
             "Reset your password",
