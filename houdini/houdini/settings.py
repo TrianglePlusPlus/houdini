@@ -23,7 +23,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
+SECRET_KEY = os.getenv('SECRET_KEY')
 
 # TODO: do not enable this setting unless you your houdini app is behind a proxy server,
 # and your proxy strips the X-Forwarded-Proto header from all incoming requests
@@ -122,11 +122,11 @@ WSGI_APPLICATION = 'houdini.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'houdini',
-        'USER': 'houdini',
-        'PASSWORD': 'houdini',
-        'HOST': 'localhost',
-        'PORT': '',
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': os.getenv('DATABASE_PORT'),
     }
 }
 
@@ -155,7 +155,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'America/New_York'
+TIME_ZONE = os.getenv('TIME_ZONE')
 
 USE_I18N = True
 
