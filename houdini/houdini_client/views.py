@@ -97,10 +97,18 @@ def register(request):
                 "password": form.cleaned_data.get("password")
             }, settings.HOUDINI_SECRET)
 
-            # POST it to the login endpoint
-            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/create_user", data={
-                "app_key": settings.HOUDINI_KEY,
-                "jwt_string": jwt_string
+            # POST it to the create_user endpoint
+            r = requests.post(
+                settings.HOUDINI_SERVER + "/endpoints/create_user",
+                # TODO: cert and verify will change in production
+                # cert isn't necessary since we have verify=False, but we will leave it
+                # as a placeholder for when we are in production with Let's Encrypt
+                cert=settings.SSL_DEV_CERT_KEY,
+                verify=False,
+                # TODO: ^only in development!!!
+                data={
+                    "app_key": settings.HOUDINI_KEY,
+                    "jwt_string": jwt_string
             })
 
             # if user was successfully created
@@ -135,10 +143,18 @@ def activate(request, key):
             "activation_key": request.POST.get('key')
         }, settings.HOUDINI_SECRET)
 
-        # POST it to the activate endpoint
-        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/regenerate_activation_key", data={
-            "app_key": settings.HOUDINI_KEY,
-            "jwt_string": jwt_string
+        # POST it to the regenerate_activation_key endpoint
+        r = requests.post(
+            settings.HOUDINI_SERVER + "/endpoints/regenerate_activation_key",
+            # TODO: cert and verify will change in production
+            # cert isn't necessary since we have verify=False, but we will leave it
+            # as a placeholder for when we are in production with Let's Encrypt
+            cert=settings.SSL_DEV_CERT_KEY,
+            verify=False,
+            # TODO: ^only in development!!!
+            data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
         })
 
         if r.status_code == 200:
@@ -151,10 +167,18 @@ def activate(request, key):
             "activation_key": key
         }, settings.HOUDINI_SECRET)
 
-        # POST it to the activate endpoint
-        r = requests.post(settings.HOUDINI_SERVER + "/endpoints/activate_user", data={
-            "app_key": settings.HOUDINI_KEY,
-            "jwt_string": jwt_string
+        # POST it to the activate_user endpoint
+        r = requests.post(
+            settings.HOUDINI_SERVER + "/endpoints/activate_user",
+            # TODO: cert and verify will change in production
+            # cert isn't necessary since we have verify=False, but we will leave it
+            # as a placeholder for when we are in production with Let's Encrypt
+            cert=settings.SSL_DEV_CERT_KEY,
+            verify=False,
+            # TODO: ^only in development!!!
+            data={
+                "app_key": settings.HOUDINI_KEY,
+                "jwt_string": jwt_string
         })
 
         if r.status_code == 200:
@@ -196,9 +220,17 @@ def password_change(request):
             }, settings.HOUDINI_SECRET)
 
             # POST it to the password_change endpoint
-            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_change", data={
-                "app_key": settings.HOUDINI_KEY,
-                "jwt_string": jwt_string
+            r = requests.post(
+                settings.HOUDINI_SERVER + "/endpoints/password_change",
+                # TODO: cert and verify will change in production
+                # cert isn't necessary since we have verify=False, but we will leave it
+                # as a placeholder for when we are in production with Let's Encrypt
+                cert=settings.SSL_DEV_CERT_KEY,
+                verify=False,
+                # TODO: ^only in development!!!
+                data={
+                    "app_key": settings.HOUDINI_KEY,
+                    "jwt_string": jwt_string
             })
 
             # if user was successfully created
@@ -229,9 +261,17 @@ def password_reset(request):
             }, settings.HOUDINI_SECRET)
 
             # POST it to the password_reset endpoint
-            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_reset", data={
-                "app_key": settings.HOUDINI_KEY,
-                "jwt_string": jwt_string
+            r = requests.post(
+                settings.HOUDINI_SERVER + "/endpoints/password_reset",
+                # TODO: cert and verify will change in production
+                # cert isn't necessary since we have verify=False, but we will leave it
+                # as a placeholder for when we are in production with Let's Encrypt
+                cert=settings.SSL_DEV_CERT_KEY,
+                verify=False,
+                # TODO: ^only in development!!!
+                data={
+                    "app_key": settings.HOUDINI_KEY,
+                    "jwt_string": jwt_string
             })
 
             if r.status_code == 200:
@@ -262,9 +302,17 @@ def password_set(request, key):
             }, settings.HOUDINI_SECRET)
 
             # POST it to the password_set endpoint
-            r = requests.post(settings.HOUDINI_SERVER + "/endpoints/password_set", data={
-                "app_key": settings.HOUDINI_KEY,
-                "jwt_string": jwt_string
+            r = requests.post(
+                settings.HOUDINI_SERVER + "/endpoints/password_set",
+                # TODO: cert and verify will change in production
+                # cert isn't necessary since we have verify=False, but we will leave it
+                # as a placeholder for when we are in production with Let's Encrypt
+                cert=settings.SSL_DEV_CERT_KEY,
+                verify=False,
+                # TODO: ^only in development!!!
+                data={
+                    "app_key": settings.HOUDINI_KEY,
+                    "jwt_string": jwt_string
             })
 
             if r.status_code == 200:

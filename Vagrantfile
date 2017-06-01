@@ -9,11 +9,11 @@ yaml = config["config"]["vagrant"]
 
 Vagrant.configure(2) do |config|
 	config.vm.box = "corpit/postgres"
-	
+
 	# comment out this line if you are using windows
 	config.vm.network "private_network", ip: yaml["ip"]
-	
-	config.vm.network "forwarded_port", guest: 80, host: 8080
+
+	config.vm.network "forwarded_port", guest: 443, host: 8080
 	config.ssh.insert_key = false
 	config.vm.synced_folder ".", "/home/thecorp/django/" + yaml["repo_name"]
 	config.vm.provision "shell" do |s|
