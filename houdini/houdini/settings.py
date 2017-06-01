@@ -25,6 +25,21 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = '+wfajagp&e*(3s-gwg^9aat2_u%z8r3ilk8t!^ih3grrf-p*5u'
 
+# TODO: do not enable this setting unless you your houdini app is behind a proxy server,
+# and your proxy strips the X-Forwarded-Proto header from all incoming requests
+# and sets the X-Forwarded-Proto header only for requests that originally come in via HTTPS!
+# see: https://docs.djangoproject.com/en/1.10/ref/settings/#std:setting-SECURE_PROXY_SSL_HEADER
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# TODO: hopefully this one will eventually be handled by the web server
+SECURE_SSL_REDIRECT = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+# TODO: looks like these next two are now handled by the web server
+SECURE_HSTS_SECONDS = 600 # TODO: should eventually be set to something like 31536000 (1 year)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+
+SSL_DEV_CERT_KEY = (os.getenv('SSL_DEV_CERT'), os.getenv('SSL_DEV_KEY'))
+
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
