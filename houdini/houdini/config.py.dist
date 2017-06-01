@@ -1,0 +1,33 @@
+# Do not include config.py in the repository
+
+import os
+
+# Houdini server info
+os.environ['app_key'] = '60b7fb226f5b43f3917dbb7d206aa6f7'
+os.environ['app_secret'] = '235914cea6164dc4b6f81ed844c68103'
+os.environ['houdini_server'] = 'https://www.myhoudiniserver.com'
+
+# Local self-signed SSL Cert
+os.environ['SSL_DEV_CERT'] = '/path_to_certs/devcert.crt'
+os.environ['SSL_DEV_KEY'] = '/path_to_certs/devcert.key'
+
+# Emails
+os.environ['EMAIL_USE_TLS'] = str(True)
+os.environ['EMAIL_USE_SSL'] = str(False)
+os.environ['EMAIL_HOST'] = 'smtp.gmail.com'
+os.environ['EMAIL_PORT'] = str(587)
+os.environ['EMAIL_HOST_USER'] = 'email@example.org'
+os.environ['EMAIL_HOST_PASSWORD'] = 'email_password'
+
+os.environ['BASE_URL'] = 'https://localhost:8080'
+
+# Database information and credentials
+os.environ['DATABASE_NAME'] = 'db_name'
+os.environ['DATABASE_USER'] = 'db_user'
+os.environ['DATABASE_PASSWORD'] = 'db_password'
+os.environ['DATABASE_HOST'] = 'host'
+os.environ['DATABASE_PORT'] = '5432'
+
+os.environ['TIME_ZONE'] = 'UTC'
+
+os.environ['SECRET_KEY'] = 'u6bt+5dgetcai2&w*1^t(z^tg7ev*urbw2fj9+ig!m!kkpr_h+'
