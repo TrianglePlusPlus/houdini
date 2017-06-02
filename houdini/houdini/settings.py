@@ -17,6 +17,8 @@ from django.contrib.messages import constants as messages_constants
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(BASE_DIR)
+STATIC_ROOT = os.path.join(ROOT, 'static')
 
 
 # Quick-start development settings - unsuitable for production
