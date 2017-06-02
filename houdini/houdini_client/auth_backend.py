@@ -44,7 +44,6 @@ class RemoteServerAuthBackend(ModelBackend):
         # POST it to the login endpoint
         r = requests.post(
             settings.HOUDINI_SERVER + "/endpoints/login",
-            # cert=settings.SSL_DEV_CERT_KEY,
             data={
                 "app_key": settings.HOUDINI_KEY,
                 "jwt_string": jwt_string

@@ -100,7 +100,6 @@ def register(request):
             # POST it to the create_user endpoint
             r = requests.post(
                 settings.HOUDINI_SERVER + "/endpoints/create_user",
-                cert=settings.SSL_DEV_CERT_KEY,
                 data={
                     "app_key": settings.HOUDINI_KEY,
                     "jwt_string": jwt_string
@@ -141,7 +140,6 @@ def activate(request, key):
         # POST it to the regenerate_activation_key endpoint
         r = requests.post(
             settings.HOUDINI_SERVER + "/endpoints/regenerate_activation_key",
-            cert=settings.SSL_DEV_CERT_KEY,
             data={
                 "app_key": settings.HOUDINI_KEY,
                 "jwt_string": jwt_string
@@ -160,7 +158,6 @@ def activate(request, key):
         # POST it to the activate_user endpoint
         r = requests.post(
             settings.HOUDINI_SERVER + "/endpoints/activate_user",
-            cert=settings.SSL_DEV_CERT_KEY,
             data={
                 "app_key": settings.HOUDINI_KEY,
                 "jwt_string": jwt_string
@@ -207,7 +204,6 @@ def password_change(request):
             # POST it to the password_change endpoint
             r = requests.post(
                 settings.HOUDINI_SERVER + "/endpoints/password_change",
-                cert=settings.SSL_DEV_CERT_KEY,
                 data={
                     "app_key": settings.HOUDINI_KEY,
                     "jwt_string": jwt_string
@@ -243,7 +239,6 @@ def password_reset(request):
             # POST it to the password_reset endpoint
             r = requests.post(
                 settings.HOUDINI_SERVER + "/endpoints/password_reset",
-                cert=settings.SSL_DEV_CERT_KEY,
                 data={
                     "app_key": settings.HOUDINI_KEY,
                     "jwt_string": jwt_string
@@ -279,7 +274,6 @@ def password_set(request, key):
             # POST it to the password_set endpoint
             r = requests.post(
                 settings.HOUDINI_SERVER + "/endpoints/password_set",
-                cert=settings.SSL_DEV_CERT_KEY,
                 data={
                     "app_key": settings.HOUDINI_KEY,
                     "jwt_string": jwt_string

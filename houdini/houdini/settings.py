@@ -40,8 +40,6 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 600 # TODO: should eventually be set to something like 31536000 (1 year)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-SSL_DEV_CERT_KEY = (os.getenv('SSL_DEV_CERT'), os.getenv('SSL_DEV_KEY'))
-
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
