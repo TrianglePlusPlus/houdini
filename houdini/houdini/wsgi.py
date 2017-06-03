@@ -14,6 +14,6 @@ from django.core.wsgi import get_wsgi_application
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "houdini.settings")
 
 # set houdini specific env vars
-import houdini.config
+import houdini.config_dev
 
 application = get_wsgi_application()
