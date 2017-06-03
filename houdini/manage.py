@@ -6,7 +6,7 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "houdini.settings")
 
     # set houdini specific env vars
-    import houdini.config_dev
+    import houdini.config_production
 
     # TODO: only in development!!!
     # disable SSL warnings so we can use a self-signed cert
