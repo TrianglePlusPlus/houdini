@@ -56,8 +56,6 @@ EMAIL_PORT = int(os.getenv('EMAIL_PORT'))
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
-BASE_URL = os.getenv('BASE_URL')
-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
