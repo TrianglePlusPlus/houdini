@@ -23,9 +23,4 @@ urlpatterns = [
     url(r'^permissions/create/$', views.create_permission, name='create_permission'),
     url(r'^permissions/edit/(?P<pk>\d+)$', views.PermissionUpdate.as_view(), name='edit_permission'),
     url(r'^permissions/delete/(?P<pk>\d+)$', views.delete_permission, name='delete_permission'),
-
-    # Misc/test views
-    url(r'^login_test/$', views.login_test, name='login_test'),
-    url(r'^role_test/$', views.role_test, name='role_test'),
-    url(r'^permission_test/$', views.permission_test, name='permission_test'),
 ]
