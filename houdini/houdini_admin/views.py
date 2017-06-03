@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
+from django.utils.decorators import method_decorator
 from django.views.generic.edit import UpdateView
 from django.utils.decorators import method_decorator
 
