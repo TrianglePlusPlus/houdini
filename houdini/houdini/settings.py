@@ -57,12 +57,13 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['auth.thecorp.org']
 
 ADMINS = (
     ('Justice Suh', 'justice.suh@gmail.com'),
+    ('Peter Johnston', 'peter@thecorp.org'),
 )
 
 
