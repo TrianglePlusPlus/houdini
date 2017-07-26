@@ -88,7 +88,11 @@ class LoginEndpoint(Endpoint):
         app_roles = set(self.app.roles.all())
         # Get all of the roles the user has
         user_roles = set(user.roles.all())
-        relevant_roles = app_roles.intersection(user_roles)
+        user_app_roles = app_roles.intersection(user_roles)
+        # Now get all of the roles that they have and inherit
+        relevant_roles = set()
+        for role in user_app_roles:
+            relevant_roles.add(role.get_all_inherited_roles())
         # Now get all of the permissions for every role
         permissions = set()
         for role in relevant_roles:
