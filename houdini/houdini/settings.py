@@ -59,7 +59,11 @@ EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['auth.thecorp.org']
+# I added the IP and Linode hostname to stop the incessant emails
+# TODO: remove them, ideally filter out direct IP access
+# and linode access via nginx
+# - Justice
+ALLOWED_HOSTS = ['auth.thecorp.org', '45.79.140.253', 'li1239-253.members.linode.com']
 
 ADMINS = (
     ('Justice Suh', 'justice.suh@gmail.com'),
