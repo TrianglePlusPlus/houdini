@@ -9,7 +9,7 @@ class Command(BaseCommand):
         # get the users to be created from csv
         import csv
         users = []
-        with open('~/django/houdini/houdini/houdini_server/management/commands/access_test_users.csv', mode='r') as infile:
+        with open('access_test_users.csv', mode='r') as infile:
             reader = csv.reader(infile)
             title_row = next(reader)
             for row in reader:
@@ -20,11 +20,15 @@ class Command(BaseCommand):
                     title_row[3]: row[3], # last_name
                     title_row[4]: row[4], # roles
                 }
-            users.append(user)
+                users.append(user)
 
         from houdini_server.models import User
         for user in users:
             print("email: ", user.get('email'))
+            print("first_name: ", user.get('first_name'))
+            print("last_name: ", user.get('last_name'))
+            print("password: ", user.get('password'))
+            print("roles: ", user.get('roles'))
             # new_user = User.objects.create_user(
             #     user.get('email'),
             #     "https://auth.thecorp.org/activate/",
