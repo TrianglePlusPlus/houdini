@@ -9,7 +9,7 @@ class Command(BaseCommand):
         # get the users to be created from csv
         import csv
         users = []
-        with open('access_test_users.csv', mode='r') as infile:
+        with open('~/django/houdini/houdini/houdini_server/management/commands/access_test_users.csv', mode='r') as infile:
             reader = csv.reader(infile)
             title_row = next(reader)
             for row in reader:
