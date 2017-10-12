@@ -47,6 +47,14 @@ INSTALLED_APPS = [
 ]
 ```
 
+Include `houdini_client` in your main url config:
+``` python
+urlpatterns = [
+    ...
+    url(r'^', include('houdini_client.urls')),
+]
+```
+
 Create an Application in the Houdini admin panel, and add the app's key and secret as well as the Houdini server URL to your settings. It is recommended that you use a config file not stored in the repository that saves these as environment variables:
 ``` python
 HOUDINI_KEY = os.getenv('app_key') # e.g., 'a72bb6e0-46f7-11e7-a919-92ebcb67fe33'
