@@ -16,29 +16,23 @@ class Command(BaseCommand):
                 user = {
                     title_row[0]: row[0], # email
                     title_row[1]: row[1], # password
-                    title_row[2]: row[2], # first_name
-                    title_row[3]: row[3], # last_name
-                    title_row[4]: row[4], # roles
+                    title_row[3]: row[3], # first_name
+                    title_row[4]: row[4], # last_name
+                    title_row[5]: row[5], # roles
                 }
                 users.append(user)
 
-        from houdini_server.models import User
+        from houdini_server.models import User, Role
         for user in users:
-            print("email: ", user.get('email'))
-            print("first_name: ", user.get('first_name'))
-            print("last_name: ", user.get('last_name'))
-            print("password: ", user.get('password'))
-            print("roles: ", user.get('roles'))
-            # new_user = User.objects.create_user(
-            #     user.get('email'),
-            #     "https://auth.thecorp.org/activate/",
-            #     password=user.get('password'),
-            #     first_name=user.get('first_name'),
-            #     last_name=user.get('last_name'),
-            # )
-            # TODO: set roles
-            # assume it's just one role?
-            # Role role = Role.objects.get(slug=user.get('roles'))
-            # new_user.roles.add(role)
-            # new_user.save()
+            if User.objects.filter(email=user.get('email')).count() == 0:
+                new_user = User.objects.create_user(
+                    user.get('email'),
+                    "https://auth.thecorp.org/activate/",
+                    password=user.get('email password'),
+                    first_name=user.get('first name'),
+                    last_name=user.get('last name'),
+                )
+                role = Role.objects.get(slug=user.get('roles'))
+                new_user.roles.add(role)
+                new_user.save()
 
