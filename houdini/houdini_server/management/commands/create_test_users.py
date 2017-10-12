@@ -21,7 +21,7 @@ class Command(BaseCommand):
                     title_row[5]: row[5], # roles
                 }
                 users.append(user)
-
+        
         from houdini_server.models import User, Role
         for user in users:
             if User.objects.filter(email=user.get('email')).count() == 0:
