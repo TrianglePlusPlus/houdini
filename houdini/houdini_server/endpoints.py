@@ -297,7 +297,7 @@ class AddRoleEndpoint(Endpoint):
             except Role.DoesNotExist:
                 # status code 400
                 return HttpResponseBadRequest("Role with that name does not exist")
-        else if role_slug is not None:
+        elif role_slug is not None:
             try:
                 role_to_add = Role.objects.get(slug=role_slug)
             except Role.DoesNotExist:
