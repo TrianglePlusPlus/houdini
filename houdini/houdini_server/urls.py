@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^endpoints/password_change', endpoints.PasswordChangeEndpoint.as_view(), name='password_change_endpoint'),
     url(r'^endpoints/password_reset', endpoints.PasswordResetEndpoint.as_view(), name='password_reset_endpoint'),
     url(r'^endpoints/password_set', endpoints.PasswordSetEndpoint.as_view(), name='password_set_endpoint'),
+    url(r'^endpoints/role_add', endpoints.AddRoleEndpoint.as_view(), name='role_add_endpoint'),
 ]
