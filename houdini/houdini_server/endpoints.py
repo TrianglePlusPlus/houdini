@@ -6,7 +6,7 @@ from django.utils import timezone
 import json
 import jwt
 
-from .models import Application, User, RolesToPermissions
+from .models import Application, User, RolesToPermissions, Role
 from .http import *
 from .auth_backend import authenticate, authenticate_jwt
 
