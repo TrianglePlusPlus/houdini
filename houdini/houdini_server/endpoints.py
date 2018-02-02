@@ -325,3 +325,60 @@ class AddRoleEndpoint(Endpoint):
         user.save()
         # status code 200
         return HttpResponse("Role successfully added to user.")
+
+
+class RemoveRoleEndpoint(Endpoint):
+    def post(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data.get('email')
+        role_name = self.data.get('role_name')
+        role_slug = self.data.get('role_slug')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid email")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        if role_name is not None:
+            try:
+                role_to_remove = Role.objects.get(name=role_name)
+            except Role.DoesNotExist:
+                # status code 400
+                return HttpResponseBadRequest("Role with that name does not exist")
+        elif role_slug is not None:
+            try:
+                role_to_remove = Role.objects.get(slug=role_slug)
+            except Role.DoesNotExist:
+                # status code 400
+                return HttpResponseBadRequest("Role with that slug does not exist")
+        else:
+            # status code 400
+            return HttpResponseBadRequest("Role name or slug not specified")
+
+        # Get all of the roles for the app that sent the request
+        app_roles = set(self.app.roles.all())
+        if role_to_remove not in app_roles:
+            # status code 400
+            return HttpResponseBadRequest("Role invalid for this application")
+
+        # Get all of the roles the user has
+        user_roles = set(user.roles.all())
+        relevant_roles = app_roles.intersection(user_roles)
+        if not (role_to_remove in relevant_roles):
+            # status code 200; it's not a failure
+            return HttpResponse("User does not have this role")
+
+        # add the role to the user
+        user.roles.remove(role_to_remove)
+        user.save()
+        # status code 200
+        return HttpResponse("Role successfully removed from user.")
+
