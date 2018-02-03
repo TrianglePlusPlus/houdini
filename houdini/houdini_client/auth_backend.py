@@ -44,12 +44,6 @@ class RemoteServerAuthBackend(ModelBackend):
         # POST it to the login endpoint
         r = requests.post(
             settings.HOUDINI_SERVER + "/endpoints/login",
-            # TODO: cert and verify will change in production
-            # cert isn't necessary since we have verify=False, but we will leave it
-            # as a placeholder for when we are in production with Let's Encrypt
-            cert=settings.SSL_DEV_CERT_KEY,
-            verify=False,
-            # TODO: ^only in development!!!
             data={
                 "app_key": settings.HOUDINI_KEY,
                 "jwt_string": jwt_string

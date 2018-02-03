@@ -139,6 +139,7 @@ class Role(models.Model):
         return [parent.slug for parent in self.parents]
 
     def get_parent_permissions(self):
+        # TODO: This could be sped up by using something to prevent iterating across the same parent multiple times
         parent_permissions = set()
         search_queue = Queue()
         for parent in self.parents.all():
@@ -155,6 +156,19 @@ class Role(models.Model):
         permissions = set(self.permissions.all())
         permissions |= self.get_parent_permissions()
         return permissions
+
+    def get_all_inherited_roles(self):
+        parents = set()
+        search_queue = Queue()
+        for parent in self.parents.all():
+            search_queue.put(parent)
+        while not search_queue.empty():
+            parent = search_queue.get()
+            parents.add(parent)
+            for role_parent in parent.parents.all():
+                if role_parent not in parents:
+                    search_queue.put(parent)
+
 
     def __str__(self):
         return self.name
@@ -179,6 +193,28 @@ class RolesToPermissions(models.Model):
             permissions_list += [permission.slug for permission in permissions]
             permissions_string = json.dumps(permissions_list)
             mapping = RolesToPermissions(role=role, permissions=permissions_string)
+            mapping.save()
+
+
+class RolesToParents(models.Model):
+    role = models.ForeignKey('Role')
+    parents = models.TextField()
+
+    @staticmethod
+    def refresh_table():
+        """
+        Clears the entire table and for every role finds all of its parents
+        :return: void
+        """
+        # First clear the entire table
+        RolesToParents.objects.all().delete()
+        # Now regenerate all of the mappings
+        for role in Role.objects.all():
+            parents = role.get_all_inherited_roles()
+            parents_list = [parent.name for parent in parents]
+            parents_list += [parent.slug for parent in parents]
+            parents_string = json.dumps(parents_list)
+            mapping = RolesToParents(role=role, parents=parents_string)
             mapping.save()
 
 
@@ -233,9 +269,11 @@ class User(AbstractBaseUser):
     def send_activation_email(self, activate_url, resend=False):
         activation_link = activate_url + self.activation_key
         if resend:
-            message = "Hello " + str(self) + "! Your old activation key expired so we have generated a new one for you. Go to this link to activate your account: " + activation_link
+            message = "Hello " + str(
+                self) + "! Your old activation key expired so we have generated a new one for you. Go to this link to activate your account: " + activation_link
         else:
-            message = "Hello " + str(self) + "! You have successfully registered for an account. Go to this link to activate your account: " + activation_link
+            message = "Hello " + str(
+                self) + "! You have successfully registered for an account. Go to this link to activate your account: " + activation_link
         send_mail(
             "Activate your account",
             message,

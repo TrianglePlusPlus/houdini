@@ -17,6 +17,8 @@ from django.contrib.messages import constants as messages_constants
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(BASE_DIR)
+STATIC_ROOT = os.path.join(ROOT, 'static')
 
 
 # Quick-start development settings - unsuitable for production
@@ -38,8 +40,6 @@ CSRF_COOKIE_SECURE = True
 SECURE_HSTS_SECONDS = 600 # TODO: should eventually be set to something like 31536000 (1 year)
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
-SSL_DEV_CERT_KEY = (os.getenv('SSL_DEV_CERT'), os.getenv('SSL_DEV_KEY'))
-
 HOUDINI_KEY = os.getenv('app_key')
 HOUDINI_SECRET = os.getenv('app_secret')
 HOUDINI_SERVER = os.getenv('houdini_server')
@@ -57,12 +57,13 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['auth.thecorp.org']
 
 ADMINS = (
     ('Justice Suh', 'justice.suh@gmail.com'),
+    ('Peter Johnston', 'peter@thecorp.org'),
 )
 
 

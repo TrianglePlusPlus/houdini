@@ -6,13 +6,7 @@ if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "houdini.settings")
 
     # set houdini specific env vars
-    import houdini.config_dev
-
-    # TODO: only in development!!!
-    # disable SSL warnings so we can use a self-signed cert
-    import requests
-    from requests.packages.urllib3.exceptions import InsecureRequestWarning
-    requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
+    import houdini.config_production
 
     try:
         from django.core.management import execute_from_command_line
