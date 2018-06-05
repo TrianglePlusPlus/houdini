@@ -15,6 +15,7 @@ urlpatterns = [
     url(r'^applications/delete/(?P<pk>\d+)$', views.delete_application, name='delete_application'),
     url(r'^users/$', views.users, name='users'),
     url(r'^users/edit/(?P<pk>\d+)$', views.UserUpdate.as_view(), name='edit_user'),
+    url(r'^users/activate/(?P<pk>\d+)$', views.activate_user, name='activate_user'),
     url(r'^roles/$', views.roles, name='roles'),
     url(r'^roles/create/$', views.create_role, name='create_role'),
     url(r'^roles/edit/(?P<pk>\d+)$', views.RoleUpdate.as_view(), name='edit_role'),

@@ -1,4 +1,6 @@
+from django import forms
 from django.forms import ModelForm, ValidationError
+from django.forms.widgets import HiddenInput
 
 from houdini_server.models import Application, Role, Permission, User
 
@@ -60,3 +62,13 @@ class UserForm(ModelForm):
         super(UserForm, self).__init__(*args, **kwargs)
         self.fields['roles'].widget.attrs.update({'class': 'form-control'})
         self.fields['roles'].required = False
+
+
+class SearchUserByNameForm(forms.Form):
+    action = forms.CharField(initial="search_by_name", widget=HiddenInput)
+    name = forms.CharField()
+
+
+class SearchUserByRoleForm(forms.Form):
+    action = forms.CharField(initial="search_by_role", widget=HiddenInput, label="Filter by role") # TODO: how??
+    role = forms.ModelChoiceField(queryset=Role.objects.all(), empty_label="--")
