@@ -16,6 +16,27 @@
         <a class="btn btn-success pull-right" href="{% url 'create_'|add:name %}">Create {{ name|capfirst }}</a>
         {% endif %}
     </h2>
+    <!--this will be changed from user-not to user when search feature done-->
+    {% if name == "user-not" %}
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ search_name_form.action }}
+        <div class="form-group {% if field.errors %}has-error{% endif %}">
+            <label class="control-label sr-only" for="{{ field.id_for_label }}">{{ search_name_form.name.label }}</label>
+            {{ search_name_form.name }}
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ search_role_form.action }}
+        <div class="form-group {% if field.errors %}has-error{% endif %}">
+            <label class="control-label sr-only" for="{{ field.id_for_label }}">{{ search_role_form.role.label }}</label>
+            {{ search_role_form.role }}
+            <button type="submit" class="btn btn-primary">Filter</button>
+        </div>
+    </form>
+    {% endif %}
     <table class="table table-striped">
         <thead>
         <tr>
@@ -35,6 +56,9 @@
             {% if forloop.last %}
             <td>
                 <a href="{% url 'edit_'|add:name pk=cell %}"><span class="fa fa-pencil-square-o text-info"></span></a>
+                {% if activate_button %}
+                <a href="{% url 'activate_'|add:name pk=cell %}"><span class="fa fa-check-square-o text-success"></span></a>
+                {% endif %}
                 {% if delete_button %}
                 <a href="{% url 'delete_'|add:name pk=cell %}"><span class="fa fa-trash-o text-warning"></span></a>
                 {% endif %}

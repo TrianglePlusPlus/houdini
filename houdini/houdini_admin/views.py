@@ -10,7 +10,7 @@ from django.utils.decorators import method_decorator
 
 from houdini_server.models import Application, User, Role, Permission
 from houdini_client.decorators import login_required, role_required, permission_required
-from .forms import ApplicationForm, UserForm, RoleForm, PermissionForm
+from .forms import ApplicationForm, UserForm, RoleForm, PermissionForm, SearchUserByNameForm, SearchUserByRoleForm
 from .tables import ApplicationTable, UserTable, RoleTable, PermissionTable
 
 
@@ -89,13 +89,50 @@ def delete_application(request, pk):
 
 @permission_required("houdini admin")
 def users(request):
-    table = UserTable(User.objects.order_by('date_joined').all())
-    table.paginate(page=request.GET.get('page', 1), per_page=12)
+    if request.method == "POST":
+        if request.POST.get("action") == "search_by_name":
+            search_name_form = SearchUserByNameForm(request.POST)
+            if search_name_form.is_valid():
+                search_name = search_name_form.cleaned_data.get("name")
+                # TODO: filter using property?
+                users = User.objects.all()
+                for user in users:
+                    if user.name != search_name:
+                        users.remove(user)
+                table = UserTable(users.order_by('date_joined').all())
+                # TODO: paginating off for now
+                # table.paginate(page=request.GET.get('page', 1), per_page=12)
+                search_role_form = SearchUserByRoleForm()
+            else:
+                # TODO:
+                pass
+        elif request.POST.get("action") == "search_by_role":
+            search_role_form = SearchUserByRoleForm(request.POST)
+            if search_role_form.is_valid():
+                search_role = search_role_form.cleaned_data.get("role")
+                # TODO: filter using property?
+                table = UserTable(User.objects.filter(roles_names__includes=search_role).order_by('date_joined').all())
+                # TODO: paginating off for now
+                # table.paginate(page=request.GET.get('page', 1), per_page=12)
+                search_name_form = SearchUserByNameForm()
+            else:
+                # TODO:
+                pass
+    else:
+        table = UserTable(User.objects.order_by('date_joined').all())
+        # TODO: paginating off for now
+        # table.paginate(page=request.GET.get('page', 1), per_page=12)
+        search_name_form = SearchUserByNameForm()
+        search_role_form = SearchUserByRoleForm()
+
     return render(request, 'houdini_admin/table.html', {
         'name': 'user',
         'create_button': False,
         'delete_button': False,
-        'table': table
+        'activate_button': True,
+        'table': table,
+        'search_name_form': search_name_form,
+        'search_role_form': search_role_form,
     })
 
 
@@ -119,6 +156,15 @@ class UserUpdate(UpdateView):
         context = super().get_context_data()
         context['name'] = 'user'
         return context
+
+
+@permission_required("houdini admin")
+def activate_user(request, pk):
+    user = User.objects.get(pk=pk)
+    if user:
+        user.is_active = True
+        user.save()
+    return redirect("users")
 
 
 @permission_required("houdini admin")
