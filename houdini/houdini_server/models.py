@@ -196,7 +196,8 @@ class HoudiniUserManager(UserManager):
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.generate_activation_key()
-        user.send_activation_email(activate_url)
+        # TODO: uncomment this once initial users are added to New Access
+        # user.send_activation_email(activate_url)
         user.save(using=self._db)
         return user
 

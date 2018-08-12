@@ -131,7 +131,9 @@ class CreateUserEndpoint(Endpoint):
             password=password,
             first_name=first_name,
             middle_name=middle_name,
-            last_name=last_name
+            last_name=last_name,
+            # TODO: remove this once initial users are added to New Access
+            is_active=True
         )
         user.save()
         # status code 201
