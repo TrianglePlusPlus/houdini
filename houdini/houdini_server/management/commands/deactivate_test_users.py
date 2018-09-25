@@ -15,7 +15,7 @@ class Command(BaseCommand):
         for email in emails_to_deactivate:
             try:
                 user = User.objects.get(email=email)
-                user.active = False
+                user.is_active = False
                 user.save()
             except User.DoesNotExist:
                 print("User could not be found: " + email)
