@@ -62,11 +62,10 @@ class Command(BaseCommand):
             user = User.objects.get(email=email)
             # print out their names for safe keeping
             print(user.name + ", " + user.email)
-            # user.delete()
+            user.delete()
 
 
 # test00 - test29 - deactivate?
-
 
 # dop it  dop.it@thecorp.org  ✔   it, it admin
 # other matson    sam439@georgetown.edu   ✔   —
