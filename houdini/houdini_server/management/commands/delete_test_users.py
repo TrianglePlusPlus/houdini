@@ -52,6 +52,13 @@ emails_to_delete = [
     "rabrabmooley@gmail.com",
 ]
 
+# ?
+# dop it  dop.it@thecorp.org  ✔   it, it admin
+# other matson    sam439@georgetown.edu   ✔   —
+# Sally Matson    gm.it@thecorp.org   ✘   —??
+# Sally Matson    sally.matson@gmail.com  ✔   it  06/07/2017 6:04 p.m.
+# sally matson    sally@thecorp.org   ✔   it hr admin, c suite, it, accounting, catering, hoya snaxa, midnight mug, mug, seasonal, uncommon grounds, vital vittles, the hilltoss, it admin, marketing admin, hr, hr admin, accounting admin, timelord, catering admin, hoya snaxa admin, midnight mug admin, mug admin, seasonal admin, uncommon grounds admin, vital vittles admin, service admin, marketing, hoya snaxa hr admin
+
 
 class Command(BaseCommand):
     help = 'Delete test users no longer used to test Access'
@@ -59,16 +66,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         from houdini_server.models import User
         for email in emails_to_delete:
-            user = User.objects.get(email=email)
-            # print out their names for safe keeping
-            print(user.name + ", " + user.email)
-            user.delete()
-
-
-# test00 - test29 - deactivate?
-
-# dop it  dop.it@thecorp.org  ✔   it, it admin
-# other matson    sam439@georgetown.edu   ✔   —
-# Sally Matson    gm.it@thecorp.org   ✘   —??
-# Sally Matson    sally.matson@gmail.com  ✔   it  06/07/2017 6:04 p.m.
-# sally matson    sally@thecorp.org   ✔   it hr admin, c suite, it, accounting, catering, hoya snaxa, midnight mug, mug, seasonal, uncommon grounds, vital vittles, the hilltoss, it admin, marketing admin, hr, hr admin, accounting admin, timelord, catering admin, hoya snaxa admin, midnight mug admin, mug admin, seasonal admin, uncommon grounds admin, vital vittles admin, service admin, marketing, hoya snaxa hr admin
+            try:
+                user = User.objects.get(email=email)
+                # print out their names for safe keeping
+                print(user.name + ", " + user.email)
+                user.delete()
+            except User.DoesNotExist:
+                print("User could not be found: " + email)
