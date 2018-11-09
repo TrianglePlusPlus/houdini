@@ -66,7 +66,6 @@ DEBUG = False
 ALLOWED_HOSTS = ['auth.thecorp.org', '45.79.140.253', 'li1239-253.members.linode.com', '127.0.0.1']
 
 ADMINS = (
-    ('Justice Suh', 'justice.suh@gmail.com'),
     ('Peter Johnston', 'peter@thecorp.org'),
 )
 
