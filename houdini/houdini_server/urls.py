@@ -13,4 +13,5 @@ urlpatterns = [
     url(r'^endpoints/password_set', endpoints.PasswordSetEndpoint.as_view(), name='password_set_endpoint'),
     url(r'^endpoints/role_add', endpoints.AddRoleEndpoint.as_view(), name='role_add_endpoint'),
     url(r'^endpoints/role_remove', endpoints.RemoveRoleEndpoint.as_view(), name='role_remove_endpoint'),
+    url(r'^endpoints/role_check', endpoints.HasRoleEndpoint.as_view(), name='role_check_endpoint'),
 ]
