@@ -1,4 +1,4 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
@@ -384,3 +384,50 @@ class RemoveRoleEndpoint(Endpoint):
         # status code 200
         return HttpResponse("Role successfully removed from user.")
 
+
+class HasRoleEndpoint(Endpoint):
+    def get(self, request):
+        error_response = self.validate_request()
+        if not self.is_valid_request:
+            return error_response
+        email = self.data.get('email')
+        role_name = self.data.get('role_name')
+        role_slug = self.data.get('role_slug')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # status code 400
+            # or 404: User not found?
+            return HttpResponseBadRequest("Invalid email")
+
+        if not user.is_active:
+            # status code 401
+            return HttpResponseUnauthorized(reason="User is inactive")
+
+        if role_name is not None:
+            try:
+                role = Role.objects.get(name=role_name)
+            except Role.DoesNotExist:
+                # status code 400
+                return HttpResponseBadRequest("Role with that name does not exist")
+        elif role_slug is not None:
+            try:
+                role = Role.objects.get(slug=role_slug)
+            except Role.DoesNotExist:
+                # status code 400
+                return HttpResponseBadRequest("Role with that slug does not exist")
+        else:
+            # status code 400
+            return HttpResponseBadRequest("Role name or slug not specified")
+
+        # Get all of the roles for the app that sent the request
+        app_roles = set(self.app.roles.all())
+        if role not in app_roles:
+            # status code 400
+            return HttpResponseBadRequest("Role invalid for this application")
+
+        # Get all of the roles the user has
+        user_roles = set(user.roles.all())
+        relevant_roles = app_roles.intersection(user_roles)
+        return JsonResponse({'has_role': role in relevant_roles})
