@@ -42,7 +42,7 @@ class Endpoint(View):
         else:
             return app[0]
 
-    def validate_request(self):
+    def validate_post_request(self):
         """
         Checks to make sure that the request is valid:
              - Method is POST
@@ -71,10 +71,39 @@ class Endpoint(View):
             return HttpResponseUnauthorized(reason="Web token signature invalid.")
             # App exists and the data is signed correctly
 
+    def validate_get_request(self):
+        """
+        Checks to make sure that the request is valid:
+             - Method is GET
+             - App key exists and the corresponding app exists
+             - JWT string exists
+             - JWT is properly signed
+         Sets self.is_valid_request to False if any tests fail
+        :return: Error response if applicable, otherwise no return type
+        """
+        if self.request.method != 'GET':
+            self.is_valid_request = False
+            return HttpResponseInternalServerError(reason="Request method is not GET.")
+        app_key = self.request.GET.get('app_key', None)
+        self.app = self.get_app(app_key)
+        if self.app is None:
+            self.is_valid_request = False
+            return HttpResponseInternalServerError(reason="App not found.")
+        self.jwt_string = self.request.GET.get('jwt_string', None)
+        if self.jwt_string is None:
+            # We'll return a server error if they don't actually send anything
+            self.is_valid_request = False
+            return HttpResponseInternalServerError(reason="JWT string missing.")
+        self.data = authenticate_jwt(self.jwt_string, self.app.secret)
+        if self.data is None:
+            self.is_valid_request = False
+            return HttpResponseUnauthorized(reason="Web token signature invalid.")
+            # App exists and the data is signed correctly
+
 
 class LoginEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         email = self.data['email']
@@ -110,7 +139,7 @@ class LoginEndpoint(Endpoint):
 
 class CreateUserEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         first_name = self.data['first_name']
@@ -140,7 +169,7 @@ class CreateUserEndpoint(Endpoint):
 
 class ActivateUserEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         key = self.data['activation_key']
@@ -169,7 +198,7 @@ class ActivateUserEndpoint(Endpoint):
 
 class RegenerateActivationKeyEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         key = self.data['activation_key']
@@ -197,7 +226,7 @@ class RegenerateActivationKeyEndpoint(Endpoint):
 
 class PasswordChangeEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         email = self.data['email']
@@ -217,7 +246,7 @@ class PasswordChangeEndpoint(Endpoint):
 
 class PasswordResetEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         email = self.data['email']
@@ -243,7 +272,7 @@ class PasswordResetEndpoint(Endpoint):
 
 class PasswordSetEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         key = self.data['password_reset_key']
@@ -273,7 +302,7 @@ class PasswordSetEndpoint(Endpoint):
 
 class AddRoleEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         email = self.data.get('email')
@@ -329,7 +358,7 @@ class AddRoleEndpoint(Endpoint):
 
 class RemoveRoleEndpoint(Endpoint):
     def post(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_post_request()
         if not self.is_valid_request:
             return error_response
         email = self.data.get('email')
@@ -385,7 +414,7 @@ class RemoveRoleEndpoint(Endpoint):
 
 class HasRoleEndpoint(Endpoint):
     def get(self, request):
-        error_response = self.validate_request()
+        error_response = self.validate_get_request()
         if not self.is_valid_request:
             return error_response
         email = self.data.get('email')
